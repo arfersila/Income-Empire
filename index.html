@@ -31,6 +31,10 @@ h1 {
   margin-bottom: 20px;
 }
 
+h2 {
+  margin-top: 0;
+}
+
 .card {
   background: #1b202b;
   border-radius: 18px;
@@ -141,6 +145,167 @@ button:disabled {
   font-size: 13px;
   color: #999;
 }
+
+
+/* =========================
+   STOCK MARKET
+========================= */
+
+.stock {
+  padding: 16px 0;
+  border-bottom: 1px solid #303642;
+}
+
+.stock:last-child {
+  border-bottom: none;
+}
+
+.stock-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.stock-info {
+  flex: 1;
+}
+
+.stock-name {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.stock-symbol {
+  color: #8f98a8;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.stock-price {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 7px;
+}
+
+.stock-risk {
+  color: #9aa3b2;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.stock-owned {
+  color: #b8c0cc;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.stock-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 95px;
+}
+
+.buy-stock {
+  background: #16a34a;
+}
+
+.sell-stock {
+  background: #dc3545;
+}
+
+.stock-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.stock-buttons button {
+  flex: 1;
+  padding: 10px 6px;
+}
+
+.market-refresh {
+  width: 100%;
+  margin-bottom: 10px;
+  background: #303846;
+}
+
+.portfolio-summary {
+  background: #151922;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 15px;
+}
+
+.portfolio-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+}
+
+.profit {
+  color: #8ee28e;
+}
+
+.loss {
+  color: #ff6b6b;
+}
+
+.stock-history {
+  margin-top: 10px;
+  display: none;
+}
+
+.history-title {
+  color: #9aa3b2;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.history-bars {
+  display: flex;
+  align-items: flex-end;
+  height: 70px;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.history-bar {
+  flex: 1;
+  min-width: 3px;
+  background: #2ea6ff;
+  border-radius: 2px 2px 0 0;
+}
+
+.stock-event {
+  background: #242b38;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.market-time {
+  text-align: center;
+  color: #8f98a8;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.quantity-input {
+  width: 100%;
+  background: #10131a;
+  color: white;
+  border: 1px solid #3a4250;
+  border-radius: 8px;
+  padding: 9px;
+  text-align: center;
+  font-size: 14px;
+  margin-top: 8px;
+}
 </style>
 </head>
 
@@ -149,6 +314,11 @@ button:disabled {
 <div class="app">
 
   <h1>🏙️ Income Empire</h1>
+
+
+  <!-- =========================
+       PLAYER
+  ========================= -->
 
   <div class="card">
 
@@ -178,6 +348,11 @@ button:disabled {
 
   </div>
 
+
+  <!-- =========================
+       BUSINESSES
+  ========================= -->
+
   <div class="card">
 
     <h2>🏪 Businesses</h2>
@@ -188,7 +363,54 @@ button:disabled {
 
   </div>
 
+
+  <!-- =========================
+       STOCK MARKET
+  ========================= -->
+
+  <div class="card">
+
+    <h2>📈 Stock Market</h2>
+
+    <div class="market-time" id="marketTime">
+      Updating market...
+    </div>
+
+    <button
+      class="market-refresh"
+      onclick="loadStocks()"
+    >
+      🔄 Refresh Market
+    </button>
+
+    <div id="marketEvent"></div>
+
+    <div id="stockList">
+      Loading stocks...
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       PORTFOLIO
+  ========================= -->
+
+  <div class="card">
+
+    <h2>💼 My Portfolio</h2>
+
+    <div id="portfolioSummary">
+      Loading portfolio...
+    </div>
+
+    <div id="portfolioList">
+    </div>
+
+  </div>
+
 </div>
+
 
 <script>
 
@@ -203,6 +425,8 @@ const API =
 let telegramId = null;
 let player = null;
 let pendingCoins = 0;
+let stocks = [];
+
 
 const balanceElement =
   document.getElementById("balance");
@@ -222,6 +446,21 @@ const statusElement =
 const businessList =
   document.getElementById("businessList");
 
+const stockList =
+  document.getElementById("stockList");
+
+const portfolioList =
+  document.getElementById("portfolioList");
+
+const portfolioSummary =
+  document.getElementById("portfolioSummary");
+
+const marketTime =
+  document.getElementById("marketTime");
+
+const marketEvent =
+  document.getElementById("marketEvent");
+
 
 /* =========================
    TELEGRAM USER
@@ -237,6 +476,8 @@ if (
 
   loadPlayer();
   loadBusinesses();
+  loadStocks();
+  loadPortfolio();
 
 } else {
 
@@ -441,7 +682,8 @@ async function loadBusinesses() {
           Number(business.owned) === 1;
 
         let buttonText;
-        let buttonClass = "business-button";
+        let buttonClass =
+          "business-button";
 
         if (!owned) {
 
@@ -453,7 +695,8 @@ async function loadBusinesses() {
           buttonText =
             "UPGRADE";
 
-          buttonClass += " upgrade";
+          buttonClass +=
+            " upgrade";
 
         }
 
@@ -678,7 +921,530 @@ async function upgradeBusiness(
 
 
 /* =========================
-   EMOJIS
+   LOAD STOCKS
+========================= */
+
+async function loadStocks() {
+
+  try {
+
+    stockList.innerHTML =
+      "Loading stocks...";
+
+    const response =
+      await fetch(
+        API + "/stocks"
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error);
+    }
+
+    stocks =
+      data.stocks;
+
+    renderStocks();
+
+    if (stocks.length > 0) {
+
+      const lastUpdate =
+        Number(stocks[0].last_update);
+
+      marketTime.textContent =
+        "Last update: " +
+        new Date(lastUpdate)
+          .toLocaleTimeString();
+
+    }
+
+    await loadPortfolio();
+
+  } catch (error) {
+
+    console.error(error);
+
+    stockList.innerHTML =
+      "Не удалось загрузить акции";
+
+  }
+
+}
+
+
+/* =========================
+   RENDER STOCKS
+========================= */
+
+function renderStocks() {
+
+  stockList.innerHTML = "";
+
+  stocks.forEach(stock => {
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "stock";
+
+    const risk =
+      getStockRisk(stock.symbol);
+
+    const emoji =
+      getStockEmoji(stock.symbol);
+
+    div.innerHTML = `
+
+      <div class="stock-top">
+
+        <div class="stock-info">
+
+          <div class="stock-name">
+            ${emoji} ${stock.name}
+          </div>
+
+          <div class="stock-symbol">
+            ${stock.symbol}
+          </div>
+
+          <div class="stock-price">
+            🪙 ${Number(stock.price).toLocaleString()}
+          </div>
+
+          <div class="stock-risk">
+            Risk: ${risk}
+          </div>
+
+        </div>
+
+      </div>
+
+      <input
+        class="quantity-input"
+        id="quantity-${stock.id}"
+        type="number"
+        min="1"
+        value="1"
+        placeholder="Количество"
+      >
+
+      <div class="stock-buttons">
+
+        <button
+          class="buy-stock"
+          onclick="buyStock(${stock.id})"
+        >
+          BUY
+        </button>
+
+        <button
+          class="sell-stock"
+          onclick="sellStock(${stock.id})"
+        >
+          SELL
+        </button>
+
+      </div>
+
+    `;
+
+    stockList.appendChild(div);
+
+  });
+
+}
+
+
+/* =========================
+   BUY STOCK
+========================= */
+
+async function buyStock(
+  stockId
+) {
+
+  const input =
+    document.getElementById(
+      "quantity-" + stockId
+    );
+
+  const quantity =
+    Number(input.value);
+
+  if (
+    !quantity ||
+    quantity < 1 ||
+    !Number.isInteger(quantity)
+  ) {
+
+    alert(
+      "Введите целое количество акций"
+    );
+
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        API +
+        "/buy-stock?telegram_id=" +
+        encodeURIComponent(telegramId) +
+        "&stock_id=" +
+        stockId +
+        "&quantity=" +
+        quantity
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+
+      alert(
+        data.error === "Not enough coins"
+          ? "Недостаточно монет!"
+          : data.error
+      );
+
+      return;
+    }
+
+    player.balance =
+      data.balance;
+
+    player.last_seen =
+      Date.now();
+
+    renderPlayer();
+
+    statusElement.textContent =
+      "📈 Bought " +
+      quantity +
+      " " +
+      data.symbol +
+      " ✓";
+
+    await loadStocks();
+
+  } catch (error) {
+
+    console.error(error);
+
+    statusElement.textContent =
+      "Stock purchase error";
+
+  }
+
+}
+
+
+/* =========================
+   SELL STOCK
+========================= */
+
+async function sellStock(
+  stockId
+) {
+
+  const input =
+    document.getElementById(
+      "quantity-" + stockId
+    );
+
+  const quantity =
+    Number(input.value);
+
+  if (
+    !quantity ||
+    quantity < 1 ||
+    !Number.isInteger(quantity)
+  ) {
+
+    alert(
+      "Введите целое количество акций"
+    );
+
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        API +
+        "/sell-stock?telegram_id=" +
+        encodeURIComponent(telegramId) +
+        "&stock_id=" +
+        stockId +
+        "&quantity=" +
+        quantity
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+
+      alert(data.error);
+
+      return;
+    }
+
+    player.balance =
+      data.balance;
+
+    player.last_seen =
+      Date.now();
+
+    renderPlayer();
+
+    statusElement.textContent =
+      "📉 Sold " +
+      quantity +
+      " " +
+      data.symbol +
+      " ✓";
+
+    await loadStocks();
+
+  } catch (error) {
+
+    console.error(error);
+
+    statusElement.textContent =
+      "Stock sale error";
+
+  }
+
+}
+
+
+/* =========================
+   LOAD PORTFOLIO
+========================= */
+
+async function loadPortfolio() {
+
+  if (!telegramId) return;
+
+  try {
+
+    const response =
+      await fetch(
+        API +
+        "/portfolio?telegram_id=" +
+        encodeURIComponent(telegramId)
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error);
+    }
+
+    renderPortfolio(
+      data.portfolio
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    portfolioSummary.innerHTML =
+      "Не удалось загрузить портфель";
+
+  }
+
+}
+
+
+/* =========================
+   RENDER PORTFOLIO
+========================= */
+
+function renderPortfolio(
+  portfolio
+) {
+
+  let totalValue = 0;
+  let totalInvested = 0;
+
+  portfolio.forEach(stock => {
+
+    totalValue +=
+      Number(stock.value);
+
+    totalInvested +=
+      Number(stock.invested);
+
+  });
+
+  const totalProfit =
+    totalValue - totalInvested;
+
+  const profitClass =
+    totalProfit >= 0
+      ? "profit"
+      : "loss";
+
+  portfolioSummary.innerHTML = `
+
+    <div class="portfolio-row">
+      <span>Portfolio value</span>
+      <b>
+        🪙 ${totalValue.toLocaleString()}
+      </b>
+    </div>
+
+    <div class="portfolio-row">
+      <span>Invested</span>
+      <span>
+        🪙 ${totalInvested.toLocaleString()}
+      </span>
+    </div>
+
+    <div class="portfolio-row">
+      <span>Profit / Loss</span>
+      <b class="${profitClass}">
+        ${
+          totalProfit >= 0
+            ? "+"
+            : ""
+        }${totalProfit.toLocaleString()} 🪙
+      </b>
+    </div>
+
+  `;
+
+  portfolioList.innerHTML = "";
+
+  if (portfolio.length === 0) {
+
+    portfolioList.innerHTML =
+      '<div style="color:#9aa3b2;text-align:center;">У тебя пока нет акций</div>';
+
+    return;
+  }
+
+  portfolio.forEach(stock => {
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "stock";
+
+    const profit =
+      Number(stock.profit);
+
+    const profitClass =
+      profit >= 0
+        ? "profit"
+        : "loss";
+
+    div.innerHTML = `
+
+      <div class="stock-top">
+
+        <div class="stock-info">
+
+          <div class="stock-name">
+            ${getStockEmoji(stock.symbol)}
+            ${stock.name}
+          </div>
+
+          <div class="stock-symbol">
+            ${stock.symbol}
+          </div>
+
+          <div class="stock-owned">
+            ${Number(stock.quantity).toLocaleString()}
+            shares
+          </div>
+
+          <div class="stock-owned">
+            Avg. price:
+            🪙 ${Number(stock.avg_price).toLocaleString()}
+          </div>
+
+          <div class="stock-owned">
+            Current:
+            🪙 ${Number(stock.current_price).toLocaleString()}
+          </div>
+
+          <div class="${profitClass}">
+            ${
+              profit >= 0
+                ? "+"
+                : ""
+            }${profit.toLocaleString()} 🪙
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    portfolioList.appendChild(div);
+
+  });
+
+}
+
+
+/* =========================
+   STOCK EMOJIS
+========================= */
+
+function getStockEmoji(symbol) {
+
+  const emojis = {
+
+    EMB: "🏦",
+    MMT: "🛒",
+    FDR: "🍔",
+    ATN: "🚗",
+    SPC: "🚀",
+    CRX: "💎"
+
+  };
+
+  return emojis[symbol] || "📈";
+
+}
+
+
+/* =========================
+   STOCK RISK
+========================= */
+
+function getStockRisk(symbol) {
+
+  const risks = {
+
+    EMB: "Low",
+    MMT: "Low-Medium",
+    FDR: "Medium",
+    ATN: "Medium-High",
+    SPC: "High",
+    CRX: "Very High"
+
+  };
+
+  return risks[symbol] || "Unknown";
+
+}
+
+
+/* =========================
+   BUSINESS EMOJIS
 ========================= */
 
 function getBusinessEmoji(id) {
@@ -701,6 +1467,23 @@ function getBusinessEmoji(id) {
   return emojis[id] || "🏢";
 
 }
+
+
+/* =========================
+   AUTO REFRESH
+========================= */
+
+setInterval(
+  async function() {
+
+    if (!telegramId) return;
+
+    await loadStocks();
+    await loadPortfolio();
+
+  },
+  60000
+);
 
 </script>
 
