@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Income Empire</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,sans-serif;background:#10131a;color:#fff;min-height:100vh}
+    .app{max-width:520px;margin:auto;padding:20px 16px 28px}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .brand{font-size:23px;font-weight:800}
+    .level{font-size:13px;opacity:.75}
+    .balance{background:linear-gradient(145deg,#202733,#171b24);border:1px solid #303846;border-radius:20px;padding:22px;text-align:center}
+    .coin{font-size:36px}.money{font-size:34px;font-weight:800;margin:4px 0}.income{color:#62e18b;font-size:14px}
+    .section{margin-top:20px;font-size:18px;font-weight:800}
+    .card{background:#1a1f29;border:1px solid #2c3440;border-radius:17px;padding:17px;margin-top:10px}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .business{font-weight:800}.muted{font-size:13px;opacity:.65;margin-top:5px}
+    button{border:0;border-radius:12px;padding:11px 15px;font-weight:800;font-size:14px;background:#65d879;color:#07100a}
+    button:disabled{opacity:.45}
+    .nav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:22px}
+    .nav button{background:#1b212b;color:#fff;border:1px solid #303846}
+    .hero{margin-top:18px;text-align:center;padding:15px;border-radius:15px;background:#161b23;font-size:13px;opacity:.8}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">🏙️ Income Empire</div>
+    <div class="level">LEVEL <span id="level">1</span></div>
+  </div>
+
+  <div class="balance">
+    <div class="coin">🪙</div>
+    <div class="money" id="money">1,000</div>
+    <div class="income">+<span id="income">50</span> Coins / hour</div>
+  </div>
+
+  <div class="section">🏢 Your Empire</div>
+  <div class="card">
+    <div class="row">
+      <div>
+        <div class="business">🏪 Small Shop</div>
+        <div class="muted">Level 1 · +50 Coins/hour</div>
+      </div>
+      <button id="collect">COLLECT</button>
+    </div>
+  </div>
+
+  <div class="section">📈 Market</div>
+  <div class="card">
+    <div class="row"><span>☕ Coffee</span><b>+12.4%</b></div>
+    <div class="row" style="margin-top:12px"><span>🚗 Cars</span><b>-4.8%</b></div>
+    <div class="row" style="margin-top:12px"><span>🏨 Hotels</span><b>+7.1%</b></div>
+  </div>
+
+  <div class="hero">Prototype v0.1 · Your empire starts here.</div>
+
+  <div class="nav">
+    <button>🏠 Home</button>
+    <button>📈 Market</button>
+    <button>🏢 Business</button>
+    <button>👤 Profile</button>
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  let money = 1000;
+  let last = Date.now();
+
+  function render(){
+    document.getElementById('money').textContent = Math.floor(money).toLocaleString();
+  }
+
+  document.getElementById('collect').addEventListener('click', () => {
+    money += 50;
+    render();
+  });
+
+  setInterval(() => {
+    const now = Date.now();
+    const hours = (now-last)/3600000;
+    money += 50*hours;
+    last = now;
+    render();
+  }, 1000);
+
+  render();
+</script>
+</body>
+</html>
