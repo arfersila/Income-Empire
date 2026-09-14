@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Income Empire</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -47,6 +48,13 @@ h1 {
 .income {
   text-align: center;
   color: #8ee28e;
+  margin-bottom: 10px;
+}
+
+.pending {
+  text-align: center;
+  color: #ffd166;
+  font-size: 18px;
   margin-bottom: 20px;
 }
 
@@ -66,6 +74,10 @@ button:active {
   transform: scale(0.98);
 }
 
+button:disabled {
+  opacity: 0.6;
+}
+
 .status {
   text-align: center;
   margin-top: 12px;
@@ -78,12 +90,6 @@ button:active {
   justify-content: space-between;
   align-items: center;
 }
-
-.business button {
-  width: auto;
-  padding: 10px 15px;
-  font-size: 14px;
-}
 </style>
 </head>
 
@@ -94,41 +100,56 @@ button:active {
   <h1>🏙️ Income Empire</h1>
 
   <div class="card">
-    <div style="text-align:center;">💰 Balance</div>
+
+    <div style="text-align:center;">
+      💰 Balance
+    </div>
 
     <div class="balance" id="balance">
       Loading...
     </div>
 
     <div class="income">
-      +<span id="income">50</span> coins/hour
+      +<span id="income">50</span> 🪙 / hour
+    </div>
+
+    <div class="pending">
+      Накоплено: +<span id="pending">0</span> 🪙
     </div>
 
     <button id="collectButton">
-      COLLECT
+      COLLECT +0 🪙
     </button>
 
     <div class="status" id="status">
       Connecting...
     </div>
+
   </div>
 
+
   <div class="card">
+
     <h2>🏪 Business</h2>
 
     <div class="business">
+
       <div>
-        <b>Small Shop</b><br>
-        <span>+50 coins/hour</span>
+        <b>Small Shop</b>
+        <br>
+        <span>+50 🪙 / hour</span>
       </div>
 
-      <button>
+      <div>
         OWNED
-      </button>
+      </div>
+
     </div>
+
   </div>
 
 </div>
+
 
 <script>
 
@@ -142,38 +163,45 @@ const API =
 
 let telegramId = null;
 
+let player = null;
+
+let pendingCoins = 0;
+
+
 const balanceElement =
   document.getElementById("balance");
 
 const incomeElement =
   document.getElementById("income");
 
-const statusElement =
-  document.getElementById("status");
+const pendingElement =
+  document.getElementById("pending");
 
 const collectButton =
   document.getElementById("collectButton");
 
+const statusElement =
+  document.getElementById("status");
 
-// Получаем Telegram ID
-if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
-  telegramId = String(tg.initDataUnsafe.user.id);
+if (
+  tg.initDataUnsafe &&
+  tg.initDataUnsafe.user
+) {
 
-  statusElement.textContent =
-    "Telegram ID: " + telegramId;
+  telegramId =
+    String(tg.initDataUnsafe.user.id);
 
   loadPlayer();
 
 } else {
 
   statusElement.textContent =
-    "Telegram ID не получен";
+    "Открой игру через Telegram";
 
 }
 
 
-// Загружаем игрока
 async function loadPlayer() {
 
   try {
@@ -195,14 +223,18 @@ async function loadPlayer() {
       throw new Error(data.error);
     }
 
+    player = data.player;
+
     balanceElement.textContent =
-      data.player.balance.toLocaleString();
+      Number(player.balance).toLocaleString();
 
     incomeElement.textContent =
-      data.player.income_per_hour;
+      player.income_per_hour;
 
     statusElement.textContent =
       "Connected ✓";
+
+    updatePending();
 
   } catch (error) {
 
@@ -216,14 +248,47 @@ async function loadPlayer() {
 }
 
 
-// COLLECT
+function updatePending() {
+
+  if (!player) return;
+
+  const now = Date.now();
+
+  const secondsPassed =
+    Math.max(
+      0,
+      (now - player.last_seen) / 1000
+    );
+
+  pendingCoins =
+    Math.floor(
+      secondsPassed *
+      player.income_per_hour /
+      3600
+    );
+
+  pendingElement.textContent =
+    pendingCoins.toLocaleString();
+
+  collectButton.textContent =
+    "COLLECT +" +
+    pendingCoins.toLocaleString() +
+    " 🪙";
+
+}
+
+
+setInterval(
+  updatePending,
+  1000
+);
+
+
 collectButton.addEventListener(
   "click",
   async function() {
 
-    if (!telegramId) {
-      return;
-    }
+    if (!telegramId) return;
 
     collectButton.disabled = true;
 
@@ -247,10 +312,23 @@ collectButton.addEventListener(
       }
 
       balanceElement.textContent =
-        data.balance.toLocaleString();
+        Number(data.balance).toLocaleString();
+
+      pendingCoins = 0;
+
+      pendingElement.textContent =
+        "0";
+
+      collectButton.textContent =
+        "COLLECT +0 🪙";
 
       statusElement.textContent =
-        "+50 coins ✓";
+        "+" + data.earned + " 🪙 collected ✓";
+
+
+      // Обновляем данные игрока
+
+      await loadPlayer();
 
     } catch (error) {
 
@@ -269,4 +347,5 @@ collectButton.addEventListener(
 </script>
 
 </body>
+</html>
 </html>
