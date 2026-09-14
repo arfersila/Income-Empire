@@ -67,33 +67,70 @@
 </div>
 
 <script>
-  const tg = window.Telegram?.WebApp;
-  if (tg) {
+ const API = "https://old-haze-267f.demchukandriy2.workers.dev";
+
+const tg = window.Telegram?.WebApp;
+
+if (tg) {
     tg.ready();
     tg.expand();
-  }
+}
 
-  let money = 1000;
-  let last = Date.now();
+let player = null;
 
-  function render(){
-    document.getElementById('money').textContent = Math.floor(money).toLocaleString();
-  }
+async function loadPlayer() {
+    try {
+        const telegramUser = tg?.initDataUnsafe?.user;
 
-  document.getElementById('collect').addEventListener('click', () => {
-    money += 50;
-    render();
-  });
+        // Пока Telegram не передал ID, используем тестовый аккаунт
+        const telegramId = telegramUser?.id || "test123";
 
-  setInterval(() => {
-    const now = Date.now();
-    const hours = (now-last)/3600000;
-    money += 50*hours;
-    last = now;
-    render();
-  }, 1000);
+        const response = await fetch(
+            API + "/player?telegram_id=" + encodeURIComponent(telegramId)
+        );
 
-  render();
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || "Server error");
+        }
+
+        player = data.player;
+
+        updateGame();
+
+        console.log("Player loaded:", player);
+
+    } catch (error) {
+        console.error("Connection error:", error);
+    }
+}
+
+function updateGame() {
+    if (!player) return;
+
+    // Находим элементы существующей игры
+    const balanceElements = document.querySelectorAll(
+        '[id="balance"], .balance'
+    );
+
+    balanceElements.forEach(element => {
+        element.textContent =
+            Number(player.balance).toLocaleString() + " Coins";
+    });
+
+    const incomeElements = document.querySelectorAll(
+        '[id="income"], .income'
+    );
+
+    incomeElements.forEach(element => {
+        element.textContent =
+            "+" + Number(player.income_per_hour).toLocaleString() +
+            " Coins/hour";
+    });
+}
+
+loadPlayer();
 </script>
 </body>
 </html>
