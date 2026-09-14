@@ -62,7 +62,7 @@ button {
   border: 0;
   border-radius: 12px;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   background: #2ea6ff;
   color: white;
@@ -80,11 +80,7 @@ button:disabled {
 }
 
 .business {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 15px 0;
+  padding: 16px 0;
   border-bottom: 1px solid #303642;
 }
 
@@ -92,32 +88,51 @@ button:disabled {
   border-bottom: none;
 }
 
+.business-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
 .business-info {
   flex: 1;
 }
 
 .business-name {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: bold;
+}
+
+.business-level {
+  color: #b8c0cc;
+  font-size: 14px;
+  margin-top: 4px;
 }
 
 .business-price {
   color: #ffd166;
-  margin-top: 5px;
+  margin-top: 7px;
 }
 
 .business-income {
   color: #8ee28e;
   font-size: 14px;
+  margin-top: 4px;
+}
+
+.business-next {
+  color: #9aa3b2;
+  font-size: 13px;
   margin-top: 3px;
 }
 
-.buy {
-  min-width: 75px;
+.business-button {
+  min-width: 95px;
 }
 
-.owned {
-  background: #3a404c;
+.upgrade {
+  background: #8b5cf6;
 }
 
 .status {
@@ -163,7 +178,6 @@ button:disabled {
 
   </div>
 
-
   <div class="card">
 
     <h2>🏪 Businesses</h2>
@@ -175,7 +189,6 @@ button:disabled {
   </div>
 
 </div>
-
 
 <script>
 
@@ -190,7 +203,6 @@ const API =
 let telegramId = null;
 let player = null;
 let pendingCoins = 0;
-
 
 const balanceElement =
   document.getElementById("balance");
@@ -211,6 +223,10 @@ const businessList =
   document.getElementById("businessList");
 
 
+/* =========================
+   TELEGRAM USER
+========================= */
+
 if (
   tg.initDataUnsafe &&
   tg.initDataUnsafe.user
@@ -220,7 +236,6 @@ if (
     String(tg.initDataUnsafe.user.id);
 
   loadPlayer();
-
   loadBusinesses();
 
 } else {
@@ -231,9 +246,9 @@ if (
 }
 
 
-// ==========================
-// LOAD PLAYER
-// ==========================
+/* =========================
+   LOAD PLAYER
+========================= */
 
 async function loadPlayer() {
 
@@ -255,16 +270,10 @@ async function loadPlayer() {
 
     player = data.player;
 
-    balanceElement.textContent =
-      Number(player.balance).toLocaleString();
-
-    incomeElement.textContent =
-      Number(player.income_per_hour).toLocaleString();
+    renderPlayer();
 
     statusElement.textContent =
       "Connected ✓";
-
-    updatePending();
 
   } catch (error) {
 
@@ -278,9 +287,28 @@ async function loadPlayer() {
 }
 
 
-// ==========================
-// PENDING INCOME
-// ==========================
+/* =========================
+   RENDER PLAYER
+========================= */
+
+function renderPlayer() {
+
+  if (!player) return;
+
+  balanceElement.textContent =
+    Number(player.balance).toLocaleString();
+
+  incomeElement.textContent =
+    Number(player.income_per_hour).toLocaleString();
+
+  updatePending();
+
+}
+
+
+/* =========================
+   PENDING INCOME
+========================= */
 
 function updatePending() {
 
@@ -317,9 +345,9 @@ setInterval(
 );
 
 
-// ==========================
-// COLLECT
-// ==========================
+/* =========================
+   COLLECT
+========================= */
 
 collectButton.addEventListener(
   "click",
@@ -345,13 +373,18 @@ collectButton.addEventListener(
         throw new Error(data.error);
       }
 
-      balanceElement.textContent =
-        Number(data.balance).toLocaleString();
+      player.balance =
+        data.balance;
+
+      player.last_seen =
+        Date.now();
+
+      renderPlayer();
 
       statusElement.textContent =
-        "+" + data.earned + " 🪙 collected ✓";
-
-      await loadPlayer();
+        "+" +
+        Number(data.earned).toLocaleString() +
+        " 🪙 collected ✓";
 
     } catch (error) {
 
@@ -368,9 +401,9 @@ collectButton.addEventListener(
 );
 
 
-// ==========================
-// LOAD BUSINESSES
-// ==========================
+/* =========================
+   LOAD BUSINESSES
+========================= */
 
 async function loadBusinesses() {
 
@@ -401,31 +434,102 @@ async function loadBusinesses() {
         div.className =
           "business";
 
+        const level =
+          Number(business.level);
+
+        const owned =
+          Number(business.owned) === 1;
+
+        let buttonText;
+        let buttonClass = "business-button";
+
+        if (!owned) {
+
+          buttonText =
+            "BUY";
+
+        } else {
+
+          buttonText =
+            "UPGRADE";
+
+          buttonClass += " upgrade";
+
+        }
+
+        const price =
+          owned
+            ? business.upgrade_price
+            : business.price;
+
+        const incomeText =
+          owned
+            ? "+" +
+              Number(
+                business.current_income_per_hour
+              ).toLocaleString() +
+              " 🪙 / hour"
+            : "+" +
+              Number(
+                business.income_per_hour
+              ).toLocaleString() +
+              " 🪙 / hour";
+
+        const nextText =
+          owned
+            ? "Next: +" +
+              Number(
+                business.next_income_per_hour
+              ).toLocaleString() +
+              " 🪙 / hour"
+            : "Start at Lv.1";
+
         div.innerHTML = `
-          <div class="business-info">
 
-            <div class="business-name">
-              ${getBusinessEmoji(business.id)}
-              ${business.name}
+          <div class="business-top">
+
+            <div class="business-info">
+
+              <div class="business-name">
+                ${getBusinessEmoji(business.id)}
+                ${business.name}
+              </div>
+
+              <div class="business-level">
+                ${
+                  owned
+                    ? "Level " + level
+                    : "Not owned"
+                }
+              </div>
+
+              <div class="business-income">
+                ${incomeText}
+              </div>
+
+              <div class="business-next">
+                ${nextText}
+              </div>
+
+              <div class="business-price">
+                💰 ${Number(price).toLocaleString()}
+              </div>
+
             </div>
 
-            <div class="business-price">
-              💰 ${Number(business.price).toLocaleString()}
-            </div>
-
-            <div class="business-income">
-              +${Number(business.income_per_hour).toLocaleString()} 🪙 / hour
-            </div>
+            <button
+              class="${buttonClass}"
+              onclick="${
+                owned
+                  ? `upgradeBusiness(${business.id})`
+                  : `buyBusiness(${business.id})`
+              }"
+            >
+              ${buttonText}
+            </button>
 
           </div>
 
-          <button
-            class="buy ${business.owned ? "owned" : ""}"
-            ${business.owned ? "disabled" : ""}
-            onclick="buyBusiness(${business.id})"
-          >
-            ${business.owned ? "OWNED" : "BUY"}
-          </button>
         `;
 
         businessList.appendChild(div);
@@ -445,9 +549,9 @@ async function loadBusinesses() {
 }
 
 
-// ==========================
-// BUY BUSINESS
-// ==========================
+/* =========================
+   BUY BUSINESS
+========================= */
 
 async function buyBusiness(
   businessId
@@ -484,11 +588,10 @@ async function buyBusiness(
     player.income_per_hour =
       data.income_per_hour;
 
-    balanceElement.textContent =
-      Number(data.balance).toLocaleString();
+    player.last_seen =
+      Date.now();
 
-    incomeElement.textContent =
-      Number(data.income_per_hour).toLocaleString();
+    renderPlayer();
 
     statusElement.textContent =
       "🏪 " +
@@ -496,8 +599,6 @@ async function buyBusiness(
       " purchased!";
 
     await loadBusinesses();
-
-    updatePending();
 
   } catch (error) {
 
@@ -511,13 +612,79 @@ async function buyBusiness(
 }
 
 
-// ==========================
-// BUSINESS EMOJIS
-// ==========================
+/* =========================
+   UPGRADE BUSINESS
+========================= */
+
+async function upgradeBusiness(
+  businessId
+) {
+
+  try {
+
+    const response =
+      await fetch(
+        API +
+        "/upgrade-business?telegram_id=" +
+        encodeURIComponent(telegramId) +
+        "&business_id=" +
+        businessId
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+
+      alert(
+        data.error === "Not enough coins"
+          ? "Недостаточно монет!"
+          : data.error
+      );
+
+      return;
+    }
+
+    player.balance =
+      data.balance;
+
+    player.income_per_hour =
+      data.income_per_hour;
+
+    player.last_seen =
+      Date.now();
+
+    renderPlayer();
+
+    statusElement.textContent =
+      "⬆️ " +
+      data.business.name +
+      " upgraded to Level " +
+      data.level +
+      "!";
+
+    await loadBusinesses();
+
+  } catch (error) {
+
+    console.error(error);
+
+    statusElement.textContent =
+      "Upgrade error";
+
+  }
+
+}
+
+
+/* =========================
+   EMOJIS
+========================= */
 
 function getBusinessEmoji(id) {
 
   const emojis = {
+
     1: "🏪",
     2: "🍔",
     3: "☕",
@@ -528,9 +695,11 @@ function getBusinessEmoji(id) {
     8: "✈️",
     9: "🏦",
     10: "🌐"
+
   };
 
   return emojis[id] || "🏢";
+
 }
 
 </script>
