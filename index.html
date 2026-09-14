@@ -28,7 +28,7 @@ body {
 
 h1 {
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .card {
@@ -59,23 +59,65 @@ h1 {
 }
 
 button {
-  width: 100%;
   border: 0;
-  border-radius: 14px;
-  padding: 16px;
-  font-size: 18px;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
   font-weight: bold;
   background: #2ea6ff;
   color: white;
   cursor: pointer;
 }
 
-button:active {
-  transform: scale(0.98);
+button:disabled {
+  opacity: 0.5;
 }
 
-button:disabled {
-  opacity: 0.6;
+.collect {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+}
+
+.business {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 0;
+  border-bottom: 1px solid #303642;
+}
+
+.business:last-child {
+  border-bottom: none;
+}
+
+.business-info {
+  flex: 1;
+}
+
+.business-name {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.business-price {
+  color: #ffd166;
+  margin-top: 5px;
+}
+
+.business-income {
+  color: #8ee28e;
+  font-size: 14px;
+  margin-top: 3px;
+}
+
+.buy {
+  min-width: 75px;
+}
+
+.owned {
+  background: #3a404c;
 }
 
 .status {
@@ -83,12 +125,6 @@ button:disabled {
   margin-top: 12px;
   font-size: 13px;
   color: #999;
-}
-
-.business {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 </style>
 </head>
@@ -110,14 +146,14 @@ button:disabled {
     </div>
 
     <div class="income">
-      +<span id="income">50</span> 🪙 / hour
+      +<span id="income">0</span> 🪙 / hour
     </div>
 
     <div class="pending">
       Накоплено: +<span id="pending">0</span> 🪙
     </div>
 
-    <button id="collectButton">
+    <button class="collect" id="collectButton">
       COLLECT +0 🪙
     </button>
 
@@ -130,20 +166,10 @@ button:disabled {
 
   <div class="card">
 
-    <h2>🏪 Business</h2>
+    <h2>🏪 Businesses</h2>
 
-    <div class="business">
-
-      <div>
-        <b>Small Shop</b>
-        <br>
-        <span>+50 🪙 / hour</span>
-      </div>
-
-      <div>
-        OWNED
-      </div>
-
+    <div id="businessList">
+      Loading businesses...
     </div>
 
   </div>
@@ -162,9 +188,7 @@ const API =
   "https://old-haze-267f.demchukandriy2.workers.dev";
 
 let telegramId = null;
-
 let player = null;
-
 let pendingCoins = 0;
 
 
@@ -183,6 +207,9 @@ const collectButton =
 const statusElement =
   document.getElementById("status");
 
+const businessList =
+  document.getElementById("businessList");
+
 
 if (
   tg.initDataUnsafe &&
@@ -194,6 +221,8 @@ if (
 
   loadPlayer();
 
+  loadBusinesses();
+
 } else {
 
   statusElement.textContent =
@@ -202,12 +231,13 @@ if (
 }
 
 
+// ==========================
+// LOAD PLAYER
+// ==========================
+
 async function loadPlayer() {
 
   try {
-
-    statusElement.textContent =
-      "Loading...";
 
     const response =
       await fetch(
@@ -229,7 +259,7 @@ async function loadPlayer() {
       Number(player.balance).toLocaleString();
 
     incomeElement.textContent =
-      player.income_per_hour;
+      Number(player.income_per_hour).toLocaleString();
 
     statusElement.textContent =
       "Connected ✓";
@@ -247,6 +277,10 @@ async function loadPlayer() {
 
 }
 
+
+// ==========================
+// PENDING INCOME
+// ==========================
 
 function updatePending() {
 
@@ -277,12 +311,15 @@ function updatePending() {
 
 }
 
-
 setInterval(
   updatePending,
   1000
 );
 
+
+// ==========================
+// COLLECT
+// ==========================
 
 collectButton.addEventListener(
   "click",
@@ -293,9 +330,6 @@ collectButton.addEventListener(
     collectButton.disabled = true;
 
     try {
-
-      statusElement.textContent =
-        "Collecting...";
 
       const response =
         await fetch(
@@ -314,19 +348,8 @@ collectButton.addEventListener(
       balanceElement.textContent =
         Number(data.balance).toLocaleString();
 
-      pendingCoins = 0;
-
-      pendingElement.textContent =
-        "0";
-
-      collectButton.textContent =
-        "COLLECT +0 🪙";
-
       statusElement.textContent =
         "+" + data.earned + " 🪙 collected ✓";
-
-
-      // Обновляем данные игрока
 
       await loadPlayer();
 
@@ -344,8 +367,173 @@ collectButton.addEventListener(
   }
 );
 
+
+// ==========================
+// LOAD BUSINESSES
+// ==========================
+
+async function loadBusinesses() {
+
+  try {
+
+    const response =
+      await fetch(
+        API +
+        "/businesses?telegram_id=" +
+        encodeURIComponent(telegramId)
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error);
+    }
+
+    businessList.innerHTML = "";
+
+    data.businesses.forEach(
+      business => {
+
+        const div =
+          document.createElement("div");
+
+        div.className =
+          "business";
+
+        div.innerHTML = `
+          <div class="business-info">
+
+            <div class="business-name">
+              ${getBusinessEmoji(business.id)}
+              ${business.name}
+            </div>
+
+            <div class="business-price">
+              💰 ${Number(business.price).toLocaleString()}
+            </div>
+
+            <div class="business-income">
+              +${Number(business.income_per_hour).toLocaleString()} 🪙 / hour
+            </div>
+
+          </div>
+
+          <button
+            class="buy ${business.owned ? "owned" : ""}"
+            ${business.owned ? "disabled" : ""}
+            onclick="buyBusiness(${business.id})"
+          >
+            ${business.owned ? "OWNED" : "BUY"}
+          </button>
+        `;
+
+        businessList.appendChild(div);
+
+      }
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    businessList.innerHTML =
+      "Не удалось загрузить бизнесы";
+
+  }
+
+}
+
+
+// ==========================
+// BUY BUSINESS
+// ==========================
+
+async function buyBusiness(
+  businessId
+) {
+
+  try {
+
+    const response =
+      await fetch(
+        API +
+        "/buy-business?telegram_id=" +
+        encodeURIComponent(telegramId) +
+        "&business_id=" +
+        businessId
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+
+      alert(
+        data.error === "Not enough coins"
+          ? "Недостаточно монет!"
+          : data.error
+      );
+
+      return;
+    }
+
+    player.balance =
+      data.balance;
+
+    player.income_per_hour =
+      data.income_per_hour;
+
+    balanceElement.textContent =
+      Number(data.balance).toLocaleString();
+
+    incomeElement.textContent =
+      Number(data.income_per_hour).toLocaleString();
+
+    statusElement.textContent =
+      "🏪 " +
+      data.business.name +
+      " purchased!";
+
+    await loadBusinesses();
+
+    updatePending();
+
+  } catch (error) {
+
+    console.error(error);
+
+    statusElement.textContent =
+      "Purchase error";
+
+  }
+
+}
+
+
+// ==========================
+// BUSINESS EMOJIS
+// ==========================
+
+function getBusinessEmoji(id) {
+
+  const emojis = {
+    1: "🏪",
+    2: "🍔",
+    3: "☕",
+    4: "🏢",
+    5: "🏭",
+    6: "🏨",
+    7: "⚓",
+    8: "✈️",
+    9: "🏦",
+    10: "🌐"
+  };
+
+  return emojis[id] || "🏢";
+}
+
 </script>
 
 </body>
-</html>
 </html>
