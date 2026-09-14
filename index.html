@@ -1,136 +1,271 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Income Empire</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,sans-serif;background:#10131a;color:#fff;min-height:100vh}
-    .app{max-width:520px;margin:auto;padding:20px 16px 28px}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-    .brand{font-size:23px;font-weight:800}
-    .level{font-size:13px;opacity:.75}
-    .balance{background:linear-gradient(145deg,#202733,#171b24);border:1px solid #303846;border-radius:20px;padding:22px;text-align:center}
-    .coin{font-size:36px}.money{font-size:34px;font-weight:800;margin:4px 0}.income{color:#62e18b;font-size:14px}
-    .section{margin-top:20px;font-size:18px;font-weight:800}
-    .card{background:#1a1f29;border:1px solid #2c3440;border-radius:17px;padding:17px;margin-top:10px}
-    .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .business{font-weight:800}.muted{font-size:13px;opacity:.65;margin-top:5px}
-    button{border:0;border-radius:12px;padding:11px 15px;font-weight:800;font-size:14px;background:#65d879;color:#07100a}
-    button:disabled{opacity:.45}
-    .nav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:22px}
-    .nav button{background:#1b212b;color:#fff;border:1px solid #303846}
-    .hero{margin-top:18px;text-align:center;padding:15px;border-radius:15px;background:#161b23;font-size:13px;opacity:.8}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Income Empire</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #10131a;
+  color: white;
+}
+
+.app {
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.card {
+  background: #1b202b;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 15px;
+}
+
+.balance {
+  text-align: center;
+  font-size: 36px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.income {
+  text-align: center;
+  color: #8ee28e;
+  margin-bottom: 20px;
+}
+
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  background: #2ea6ff;
+  color: white;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.status {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #999;
+}
+
+.business {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.business button {
+  width: auto;
+  padding: 10px 15px;
+  font-size: 14px;
+}
+</style>
 </head>
+
 <body>
+
 <div class="app">
-  <div class="top">
-    <div class="brand">🏙️ Income Empire</div>
-    <div class="level">LEVEL <span id="level">1</span></div>
-  </div>
 
-  <div class="balance">
-    <div class="coin">🪙</div>
-    <div class="money" id="money">1,000</div>
-    <div class="income">+<span id="income">50</span> Coins / hour</div>
-  </div>
+  <h1>🏙️ Income Empire</h1>
 
-  <div class="section">🏢 Your Empire</div>
   <div class="card">
-    <div class="row">
-      <div>
-        <div class="business">🏪 Small Shop</div>
-        <div class="muted">Level 1 · +50 Coins/hour</div>
-      </div>
-      <button id="collect">COLLECT</button>
+    <div style="text-align:center;">💰 Balance</div>
+
+    <div class="balance" id="balance">
+      Loading...
+    </div>
+
+    <div class="income">
+      +<span id="income">50</span> coins/hour
+    </div>
+
+    <button id="collectButton">
+      COLLECT
+    </button>
+
+    <div class="status" id="status">
+      Connecting...
     </div>
   </div>
 
-  <div class="section">📈 Market</div>
   <div class="card">
-    <div class="row"><span>☕ Coffee</span><b>+12.4%</b></div>
-    <div class="row" style="margin-top:12px"><span>🚗 Cars</span><b>-4.8%</b></div>
-    <div class="row" style="margin-top:12px"><span>🏨 Hotels</span><b>+7.1%</b></div>
+    <h2>🏪 Business</h2>
+
+    <div class="business">
+      <div>
+        <b>Small Shop</b><br>
+        <span>+50 coins/hour</span>
+      </div>
+
+      <button>
+        OWNED
+      </button>
+    </div>
   </div>
 
-  <div class="hero">Prototype v0.1 · Your empire starts here.</div>
-
-  <div class="nav">
-    <button>🏠 Home</button>
-    <button>📈 Market</button>
-    <button>🏢 Business</button>
-    <button>👤 Profile</button>
-  </div>
 </div>
 
 <script>
- const API = "https://old-haze-267f.demchukandriy2.workers.dev";
 
-const tg = window.Telegram?.WebApp;
+const tg = window.Telegram.WebApp;
 
-if (tg) {
-    tg.ready();
-    tg.expand();
+tg.ready();
+tg.expand();
+
+const API =
+  "https://old-haze-267f.demchukandriy2.workers.dev";
+
+let telegramId = null;
+
+const balanceElement =
+  document.getElementById("balance");
+
+const incomeElement =
+  document.getElementById("income");
+
+const statusElement =
+  document.getElementById("status");
+
+const collectButton =
+  document.getElementById("collectButton");
+
+
+// Получаем Telegram ID
+if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+
+  telegramId =
+    String(tg.initDataUnsafe.user.id);
+
+  loadPlayer();
+
+} else {
+
+  balanceElement.textContent = "1000";
+  statusElement.textContent =
+    "Открой игру через Telegram";
+
 }
 
-let player = null;
 
+// Загружаем игрока
 async function loadPlayer() {
+
+  try {
+
+    statusElement.textContent =
+      "Loading...";
+
+    const response =
+      await fetch(
+        API +
+        "/player?telegram_id=" +
+        encodeURIComponent(telegramId)
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error);
+    }
+
+    balanceElement.textContent =
+      data.player.balance.toLocaleString();
+
+    incomeElement.textContent =
+      data.player.income_per_hour;
+
+    statusElement.textContent =
+      "Connected ✓";
+
+  } catch (error) {
+
+    console.error(error);
+
+    statusElement.textContent =
+      "Connection error";
+
+  }
+
+}
+
+
+// COLLECT
+collectButton.addEventListener(
+  "click",
+  async function() {
+
+    if (!telegramId) {
+      return;
+    }
+
+    collectButton.disabled = true;
+
     try {
-        const telegramUser = tg?.initDataUnsafe?.user;
 
-        // Пока Telegram не передал ID, используем тестовый аккаунт
-        const telegramId = telegramUser?.id || "test123";
+      statusElement.textContent =
+        "Collecting...";
 
-        const response = await fetch(
-            API + "/player?telegram_id=" + encodeURIComponent(telegramId)
+      const response =
+        await fetch(
+          API +
+          "/collect?telegram_id=" +
+          encodeURIComponent(telegramId)
         );
 
-        const data = await response.json();
+      const data =
+        await response.json();
 
-        if (!data.success) {
-            throw new Error(data.error || "Server error");
-        }
+      if (!data.success) {
+        throw new Error(data.error);
+      }
 
-        player = data.player;
+      balanceElement.textContent =
+        data.balance.toLocaleString();
 
-        updateGame();
-
-        console.log("Player loaded:", player);
+      statusElement.textContent =
+        "+50 coins ✓";
 
     } catch (error) {
-        console.error("Connection error:", error);
+
+      console.error(error);
+
+      statusElement.textContent =
+        "Error";
+
     }
-}
 
-function updateGame() {
-    if (!player) return;
+    collectButton.disabled = false;
 
-    // Находим элементы существующей игры
-    const balanceElements = document.querySelectorAll(
-        '[id="balance"], .balance'
-    );
+  }
+);
 
-    balanceElements.forEach(element => {
-        element.textContent =
-            Number(player.balance).toLocaleString() + " Coins";
-    });
-
-    const incomeElements = document.querySelectorAll(
-        '[id="income"], .income'
-    );
-
-    incomeElements.forEach(element => {
-        element.textContent =
-            "+" + Number(player.income_per_hour).toLocaleString() +
-            " Coins/hour";
-    });
-}
-
-loadPlayer();
 </script>
+
 </body>
 </html>
