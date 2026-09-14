@@ -158,16 +158,17 @@ const collectButton =
 // Получаем Telegram ID
 if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
-  telegramId =
-    String(tg.initDataUnsafe.user.id);
+  telegramId = String(tg.initDataUnsafe.user.id);
+
+  statusElement.textContent =
+    "Telegram ID: " + telegramId;
 
   loadPlayer();
 
 } else {
 
-  balanceElement.textContent = "1000";
   statusElement.textContent =
-    "Открой игру через Telegram";
+    "Telegram ID не получен";
 
 }
 
