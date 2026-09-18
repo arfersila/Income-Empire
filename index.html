@@ -2,1716 +2,965 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Income Empire</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: #10131a;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #10131a;
-  color: white;
-  padding-bottom: 82px;
-}
-
-.app {
-  max-width: 500px;
-  margin: auto;
-  padding: 20px 16px;
-}
-
-h1 {
-  text-align: center;
-  margin: 0 0 20px;
-}
-
-h2 {
-  margin-top: 0;
-}
-
-.card {
-  background: #1b202b;
-  border-radius: 18px;
-  padding: 20px;
-  margin-bottom: 15px;
-}
-
-.balance {
-  text-align: center;
-  font-size: 36px;
-  font-weight: bold;
-  margin: 10px 0;
-}
-
-.income {
-  text-align: center;
-  color: #8ee28e;
-  margin-bottom: 10px;
-}
-
-.pending {
-  text-align: center;
-  color: #ffd166;
-  font-size: 18px;
-  margin-bottom: 20px;
-}
-
-button {
-  border: 0;
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 15px;
-  font-weight: bold;
-  background: #2ea6ff;
-  color: white;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.5;
-}
-
-.collect {
-  width: 100%;
-  padding: 16px;
-  font-size: 18px;
-}
-
-.business {
-  padding: 16px 0;
-  border-bottom: 1px solid #303642;
-}
-
-.business:last-child {
-  border-bottom: none;
-}
-
-.business-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.business-info {
-  flex: 1;
-}
-
-.business-name {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.business-level {
-  color: #b8c0cc;
-  font-size: 14px;
-  margin-top: 4px;
-}
-
-.business-price {
-  color: #ffd166;
-  margin-top: 7px;
-}
-
-.business-income {
-  color: #8ee28e;
-  font-size: 14px;
-  margin-top: 4px;
-}
-
-.business-next {
-  color: #9aa3b2;
-  font-size: 13px;
-  margin-top: 3px;
-}
-
-.business-button {
-  min-width: 95px;
-}
-
-.upgrade {
-  background: #8b5cf6;
-}
-
-.status {
-  text-align: center;
-  margin-top: 12px;
-  font-size: 13px;
-  color: #999;
-}
-
-/* =========================
-   STOCK MARKET
-========================= */
-
-.stock {
-  padding: 16px 0;
-  border-bottom: 1px solid #303642;
-}
-
-.stock:last-child {
-  border-bottom: none;
-}
-
-.stock-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.stock-info {
-  flex: 1;
-}
-
-.stock-name {
-  font-size: 17px;
-  font-weight: bold;
-}
-
-.stock-symbol {
-  color: #8f98a8;
-  font-size: 13px;
-  margin-top: 3px;
-}
-
-.stock-price {
-  font-size: 22px;
-  font-weight: bold;
-  margin-top: 7px;
-}
-
-.stock-risk {
-  color: #9aa3b2;
-  font-size: 12px;
-  margin-top: 3px;
-}
-
-.stock-owned {
-  color: #b8c0cc;
-  font-size: 13px;
-  margin-top: 6px;
-}
-
-.stock-buttons {
-  display: flex;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.stock-buttons button {
-  flex: 1;
-  padding: 10px 6px;
-}
-
-.buy-stock {
-  background: #16a34a;
-}
-
-.sell-stock {
-  background: #dc3545;
-}
-
-.market-refresh {
-  width: 100%;
-  margin-bottom: 10px;
-  background: #303846;
-}
-
-.portfolio-summary {
-  background: #151922;
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 15px;
-}
-
-.portfolio-row {
-  display: flex;
-  justify-content: space-between;
-  margin: 6px 0;
-}
-
-.profit {
-  color: #8ee28e;
-}
-
-.loss {
-  color: #ff6b6b;
-}
-
-.market-time {
-  text-align: center;
-  color: #8f98a8;
-  font-size: 12px;
-  margin-bottom: 12px;
-}
-
-.quantity-input {
-  width: 100%;
-  background: #10131a;
-  color: white;
-  border: 1px solid #3a4250;
-  border-radius: 8px;
-  padding: 9px;
-  text-align: center;
-  font-size: 14px;
-  margin-top: 8px;
-}
-
-/* =========================
-   NEW SECTIONS
-========================= */
-
-.section {
-  display: none;
-}
-
-.section.active {
-  display: block;
-}
-
-.placeholder-card {
-  text-align: center;
-  padding: 35px 20px;
-}
-
-.placeholder-icon {
-  font-size: 52px;
-  margin-bottom: 12px;
-}
-
-.placeholder-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.placeholder-text {
-  color: #9aa3b2;
-  line-height: 1.5;
-}
-
-.feature-list {
-  text-align: left;
-  margin-top: 20px;
-  color: #cbd5e1;
-  line-height: 1.8;
-}
-
-
-
-/* =========================
-   PETS
-========================= */
-.case, .pet { padding: 15px 0; border-bottom: 1px solid #303642; }
-.case:last-child, .pet:last-child { border-bottom: none; }
-.pet-row, .case-row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
-.pet-info, .case-info { flex:1; }
-.pet-name, .case-name { font-size:17px; font-weight:bold; }
-.pet-meta, .case-desc { color:#9aa3b2; font-size:13px; margin-top:4px; }
-.pet-bonus { color:#8ee28e; margin-top:5px; }
-.rarity-Common { color:#b8c0cc; }
-.rarity-Rare { color:#60a5fa; }
-.rarity-Legendary { color:#fbbf24; }
-.case-price { color:#ffd166; margin-top:6px; }
-.active-pet { text-align:center; font-size:18px; padding:10px 0; }
-
-/* =========================
-   BOTTOM NAVIGATION
-========================= */
-
-.bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
-  background: rgba(21, 25, 34, 0.97);
-  border-top: 1px solid #303642;
-  backdrop-filter: blur(10px);
-}
-
-.bottom-nav-inner {
-  max-width: 650px;
-  margin: auto;
-  display: flex;
-  overflow-x: auto;
-  padding: 8px 6px;
-  gap: 4px;
-  scrollbar-width: none;
-}
-
-.bottom-nav-inner::-webkit-scrollbar {
-  display: none;
-}
-
-.nav-button {
-  flex: 0 0 auto;
-  min-width: 78px;
-  background: transparent;
-  color: #8f98a8;
-  padding: 8px 7px;
-  border-radius: 12px;
-  font-size: 11px;
-  line-height: 1.15;
-}
-
-.nav-button .nav-icon {
-  display: block;
-  font-size: 21px;
-  margin-bottom: 3px;
-}
-
-.nav-button.active {
-  background: #252c39;
-  color: white;
-}
-
-@media (max-width: 380px) {
-  .nav-button {
-    min-width: 70px;
-    font-size: 10px;
+  :root{
+    --bg:#0b1220;
+    --surface:#121a2b;
+    --surface-2:#1a2338;
+    --border:#26314a;
+    --text:#f1f3f8;
+    --text-muted:#8a93ac;
+    --gold:#e8b34c;
+    --gold-dim:#3a3320;
+    --teal:#34d8a5;
+    --teal-dim:#173229;
+    --red:#ff6161;
+    --red-dim:#3a1e1e;
+    --plum:#b98ce0;
+    --rare-blue:#5fa8ff;
+    --common-grey:#9aa4bd;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:9px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior-y:none;
+  }
+  body{
+    padding-bottom:88px;
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{ font-family:'Space Grotesk',sans-serif; }
+  .num{ font-variant-numeric:tabular-nums; }
+  button{ font-family:inherit; cursor:pointer; border:none; }
+  input{ font-family:inherit; }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 18px 8px;
+  }
+  .topbar .brand{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:19px; font-weight:600;
+    display:flex; align-items:center; gap:8px;
+  }
+  .conn-dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 8px var(--teal);
+  }
+  .conn-dot.off{ background:var(--red); box-shadow:0 0 8px var(--red);}
+  .conn-label{ font-size:12px; color:var(--text-muted); }
+
+  .mini-balance{
+    font-size:13px; color:var(--text-muted);
+    display:flex; align-items:center; gap:10px;
+  }
+  .mini-balance b{ color:var(--gold); font-weight:600; }
+
+  /* ---------- screens ---------- */
+  .screen{ display:none; padding:4px 16px 24px; animation:fadein .18s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .section-title{
+    font-size:14px; color:var(--text-muted); font-weight:500;
+    margin:22px 2px 10px;
   }
 
-  .nav-button .nav-icon {
-    font-size: 19px;
+  /* ---------- hero balance card ---------- */
+  .hero{
+    background:linear-gradient(165deg, var(--surface-2), var(--surface));
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:22px 20px;
+    margin-top:8px;
   }
-}
+  .hero .label{ font-size:13px; color:var(--text-muted); }
+  .hero .balance{
+    font-size:38px; font-weight:700; color:var(--text);
+    margin:6px 0 2px; letter-spacing:-0.5px;
+  }
+  .hero .income{
+    font-size:14px; color:var(--teal); font-weight:500;
+  }
+  .hero .pending-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:18px; padding-top:16px;
+    border-top:1px solid var(--border);
+  }
+  .hero .pending-label{ font-size:13px; color:var(--text-muted); }
+  .hero .pending-value{ font-size:16px; color:var(--gold); font-weight:600; }
+  .collect-btn{
+    width:100%; margin-top:14px;
+    background:var(--gold); color:#1a1305;
+    border-radius:var(--radius-md);
+    padding:15px; font-size:15px; font-weight:700;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .collect-btn:disabled{ background:var(--surface-2); color:var(--text-muted); }
+  .collect-btn:active:not(:disabled){ transform:scale(0.98); }
+
+  /* ---------- generic list card ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:16px;
+    margin-bottom:10px;
+  }
+  .card-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .card-title{ font-size:15px; font-weight:600; }
+  .card-sub{ font-size:12.5px; color:var(--text-muted); margin-top:3px; }
+  .card-emoji{ font-size:26px; margin-right:12px; }
+  .card-left{ display:flex; align-items:center; flex:1; min-width:0; }
+
+  .pill-btn{
+    background:var(--surface-2); color:var(--text);
+    border:1px solid var(--border);
+    border-radius:999px; padding:9px 16px;
+    font-size:13px; font-weight:600; white-space:nowrap;
+  }
+  .pill-btn.gold{ background:var(--gold); color:#1a1305; border-color:var(--gold); }
+  .pill-btn.teal{ background:var(--teal); color:#062319; border-color:var(--teal); }
+  .pill-btn.red{ background:var(--red); color:#2c0d0d; border-color:var(--red); }
+  .pill-btn:disabled{ opacity:.4; }
+
+  .badge{
+    font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px;
+  }
+  .badge.common{ background:rgba(154,164,189,.15); color:var(--common-grey); }
+  .badge.rare{ background:rgba(95,168,255,.15); color:var(--rare-blue); }
+  .badge.legendary{ background:rgba(185,140,224,.15); color:var(--plum); }
+  .badge.up{ background:rgba(52,216,165,.15); color:var(--teal); }
+  .badge.down{ background:rgba(255,97,97,.15); color:var(--red); }
+
+  /* ---------- bottom nav ---------- */
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(18,26,43,.94);
+    backdrop-filter:blur(10px);
+    border-top:1px solid var(--border);
+    display:flex; overflow-x:auto;
+    padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .navbtn{
+    flex:1; min-width:64px; background:none;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:6px 2px; color:var(--text-muted);
+    font-size:10.5px; font-weight:500;
+  }
+  .navbtn .icon{ font-size:20px; }
+  .navbtn.active{ color:var(--gold); }
+
+  /* ---------- misc ---------- */
+  .empty-state{
+    text-align:center; padding:40px 20px; color:var(--text-muted); font-size:13.5px;
+  }
+  .toast{
+    position:fixed; left:50%; bottom:100px; transform:translate(-50%, 12px);
+    background:var(--surface-2); border:1px solid var(--border);
+    color:var(--text); padding:11px 18px; border-radius:999px;
+    font-size:13px; opacity:0; transition:opacity .2s ease, transform .2s ease;
+    pointer-events:none; z-index:100; max-width:88%; text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%, 0); }
+  .toast.error{ border-color:var(--red); color:#ffb3b3; }
+
+  .qty-row{ display:flex; gap:8px; margin-top:10px; }
+  .qty-row input{
+    flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius-sm); padding:9px 12px; font-size:14px; width:0;
+  }
+
+  .tabswitch{ display:flex; gap:6px; margin-bottom:14px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px; }
+  .tabswitch button{ flex:1; background:none; color:var(--text-muted); padding:8px; border-radius:999px; font-size:13px; font-weight:600; }
+  .tabswitch button.active{ background:var(--gold); color:#1a1305; }
+
+  .lb-row{ display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--border); }
+  .lb-rank{ width:24px; font-weight:700; color:var(--text-muted); font-size:13px; }
+  .lb-name{ flex:1; font-size:14px; }
+  .lb-value{ font-weight:600; color:var(--gold); font-size:14px; }
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.6);
+    display:flex; align-items:flex-end; justify-content:center;
+    z-index:200; opacity:0; pointer-events:none; transition:opacity .15s ease;
+  }
+  .modal-backdrop.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px 20px 0 0; padding:22px 18px calc(22px + env(safe-area-inset-bottom));
+    width:100%; max-width:480px; transform:translateY(12px);
+    transition:transform .15s ease;
+  }
+  .modal-backdrop.show .modal{ transform:translateY(0); }
+  .modal h3{ font-size:16px; margin-bottom:14px; }
+  .modal-close{ position:absolute; top:14px; right:16px; background:none; color:var(--text-muted); font-size:20px; }
+
+  .drop-chances{ font-size:12px; color:var(--text-muted); margin-top:4px; }
+
+  .cooldown-note{ font-size:12.5px; color:var(--gold); margin-top:8px; }
+
+  .username-input-row{ display:flex; gap:8px; }
+  .username-input-row input{
+    flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius-sm); padding:12px 14px; font-size:14px;
+  }
 </style>
 </head>
-
 <body>
 
-<div class="app">
-
-  <h1>🏙️ Income Empire</h1>
-
-  <!-- =========================
-       BUSINESSES SECTION
-  ========================= -->
-
-  <div id="section-businesses" class="section active">
-
-    <div class="card">
-
-      <div style="text-align:center;">
-        💰 Balance
-      </div>
-
-      <div class="balance" id="balance">
-        Loading...
-      </div>
-
-      <div class="income">
-        +<span id="income">0</span> 🪙 / hour
-      </div>
-
-      <div class="pending">
-        Накоплено: +<span id="pending">0</span> 🪙
-      </div>
-
-      <button class="collect" id="collectButton">
-        COLLECT +0 🪙
-      </button>
-
-      <div class="status" id="status">
-        Connecting...
-      </div>
-
-    </div>
-
-    <div class="card">
-
-      <h2>🏪 Businesses</h2>
-
-      <div id="businessList">
-        Loading businesses...
-      </div>
-
-    </div>
-
+<div class="topbar">
+  <div class="brand">🏙️ <span>Income Empire</span></div>
+  <div class="mini-balance">
+    <span class="num"><b id="miniBalance">—</b></span>
+    <span class="conn-dot" id="connDot"></span>
   </div>
-
-
-  <!-- =========================
-       STOCKS SECTION
-  ========================= -->
-
-  <div id="section-stocks" class="section">
-
-    <div class="card">
-
-      <h2>📈 Stock Market</h2>
-
-      <div class="market-time" id="marketTime">
-        Updating market...
-      </div>
-
-      <button
-        class="market-refresh"
-        onclick="loadStocks()"
-      >
-        🔄 Refresh Market
-      </button>
-
-      <div id="marketEvent"></div>
-
-      <div id="stockList">
-        Loading stocks...
-      </div>
-
-    </div>
-
-    <div class="card">
-
-      <h2>💼 My Portfolio</h2>
-
-      <div id="portfolioSummary">
-        Loading portfolio...
-      </div>
-
-      <div id="portfolioList"></div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-       PETS SECTION
-  ========================= -->
-
-  <div id="section-pets" class="section">
-    <div class="card">
-      <h2>🐾 Pets</h2>
-      <div id="activePet">No active pet</div>
-      <div id="petCooldown" class="status"></div>
-    </div>
-    <div class="card">
-      <h2>🎁 Cases</h2>
-      <div class="status" style="margin-bottom:12px;">
-        Drop chances: 65% Common · 30% Rare · 5% Legendary
-      </div>
-      <div id="caseList">Loading cases...</div>
-    </div>
-    <div class="card">
-      <h2>🎒 My Pets</h2>
-      <div id="petList">Loading pets...</div>
-    </div>
-  </div>
-
-
-  <!-- =========================
-       TRADE SECTION
-  ========================= -->
-
-  <div id="section-trade" class="section">
-
-    <div class="card placeholder-card">
-
-      <div class="placeholder-icon">🔄</div>
-
-      <div class="placeholder-title">
-        Trade
-      </div>
-
-      <div class="placeholder-text">
-        Trade pets with other players.
-      </div>
-
-      <div class="feature-list">
-        👤 Find a player by username<br>
-        ⭐ Suggested players with similar stats<br>
-        📥 Incoming trades<br>
-        📤 Outgoing trades
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-       LEADERBOARD SECTION
-  ========================= -->
-
-  <div id="section-leaderboard" class="section">
-
-    <div class="card placeholder-card">
-
-      <div class="placeholder-icon">🏆</div>
-
-      <div class="placeholder-title">
-        Leaderboard
-      </div>
-
-      <div class="placeholder-text">
-        Compete with other players.
-      </div>
-
-      <div class="feature-list">
-        💰 Wealth — balance + current stock value<br>
-        🪙 Income/hour — your current passive income
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-       SUPPORT SECTION
-  ========================= -->
-
-  <div id="section-support" class="section">
-
-    <div class="card placeholder-card">
-
-      <div class="placeholder-icon">⭐</div>
-
-      <div class="placeholder-title">
-        Support Creator
-      </div>
-
-      <div class="placeholder-text">
-        If you enjoy Income Empire, you can support the creator.
-      </div>
-
-      <div class="feature-list">
-        ⭐ Telegram Stars support will be added here.<br><br>
-        Support gives no in-game advantages.
-      </div>
-
-    </div>
-
-  </div>
-
 </div>
 
-
-<!-- =========================
-     BOTTOM NAVIGATION
-========================= -->
-
-<nav class="bottom-nav">
-
-  <div class="bottom-nav-inner">
-
-    <button
-      class="nav-button active"
-      data-section="businesses"
-      onclick="showSection('businesses', this)"
-    >
-      <span class="nav-icon">🏢</span>
-      Businesses
-    </button>
-
-    <button
-      class="nav-button"
-      data-section="stocks"
-      onclick="showSection('stocks', this)"
-    >
-      <span class="nav-icon">📈</span>
-      Stocks
-    </button>
-
-    <button
-      class="nav-button"
-      data-section="pets"
-      onclick="showSection('pets', this)"
-    >
-      <span class="nav-icon">🐾</span>
-      Pets
-    </button>
-
-    <button
-      class="nav-button"
-      data-section="trade"
-      onclick="showSection('trade', this)"
-    >
-      <span class="nav-icon">🔄</span>
-      Trade
-    </button>
-
-    <button
-      class="nav-button"
-      data-section="leaderboard"
-      onclick="showSection('leaderboard', this)"
-    >
-      <span class="nav-icon">🏆</span>
-      Leaderboard
-    </button>
-
-    <button
-      class="nav-button"
-      data-section="support"
-      onclick="showSection('support', this)"
-    >
-      <span class="nav-icon">⭐</span>
-      Support
-    </button>
-
+<!-- ============ BUSINESSES (home) ============ -->
+<div class="screen active" id="screen-businesses">
+  <div class="hero">
+    <div class="label">Balance</div>
+    <div class="balance num" id="heroBalance">—</div>
+    <div class="income num" id="heroIncome">+0 🪙 / hour</div>
+    <div class="pending-row">
+      <span class="pending-label">Накоплено</span>
+      <span class="pending-value num" id="pendingValue">+0 🪙</span>
+    </div>
+    <button class="collect-btn" id="collectBtn" disabled>Collect +0 🪙</button>
   </div>
 
-</nav>
+  <div class="section-title">🏪 Businesses</div>
+  <div id="businessList"></div>
+</div>
 
+<!-- ============ STOCKS ============ -->
+<div class="screen" id="screen-stocks">
+  <div class="tabswitch">
+    <button class="active" data-stocktab="market">Market</button>
+    <button data-stocktab="portfolio">My Portfolio</button>
+  </div>
+  <div id="stockMarket"></div>
+  <div id="stockPortfolio" style="display:none"></div>
+</div>
+
+<!-- ============ PETS ============ -->
+<div class="screen" id="screen-pets">
+  <div class="section-title">Active Pet</div>
+  <div class="card" id="activePetCard"></div>
+
+  <div class="section-title">Cases</div>
+  <div id="casesList"></div>
+
+  <div class="section-title">My Pets</div>
+  <div id="myPetsList"></div>
+</div>
+
+<!-- ============ TRADE ============ -->
+<div class="screen" id="screen-trade">
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px;">Start a new trade</div>
+    <div class="username-input-row">
+      <input type="text" id="tradeUsernameInput" placeholder="@username">
+      <button class="pill-btn gold" id="tradeCreateBtn">Send</button>
+    </div>
+  </div>
+
+  <div class="section-title">📥 Incoming</div>
+  <div id="tradeIncoming"></div>
+
+  <div class="section-title">📤 Outgoing</div>
+  <div id="tradeOutgoing"></div>
+</div>
+
+<!-- ============ LEADERBOARD ============ -->
+<div class="screen" id="screen-leaderboard">
+  <div class="tabswitch">
+    <button class="active" data-lbtab="wealth">Wealth</button>
+    <button data-lbtab="income">Income / hour</button>
+  </div>
+  <div class="card" id="leaderboardCard"></div>
+</div>
+
+<!-- ============ SUPPORT ============ -->
+<div class="screen" id="screen-support">
+  <div class="card" style="text-align:center; padding:30px 20px;">
+    <div style="font-size:34px; margin-bottom:10px;">⭐</div>
+    <div class="card-title" style="margin-bottom:6px;">Support Income Empire</div>
+    <div class="card-sub" style="margin-bottom:18px;">
+      Voluntary support via Telegram Stars. It does not change your balance, income, pets, or leaderboard position — it only helps the project keep running.
+    </div>
+    <button class="pill-btn gold" id="supportBtn" style="width:100%;">Support with Telegram Stars</button>
+  </div>
+</div>
+
+<div class="bottomnav">
+  <button class="navbtn active" data-screen="businesses"><span class="icon">🏢</span>Businesses</button>
+  <button class="navbtn" data-screen="stocks"><span class="icon">📈</span>Stocks</button>
+  <button class="navbtn" data-screen="pets"><span class="icon">🐾</span>Pets</button>
+  <button class="navbtn" data-screen="trade"><span class="icon">🔄</span>Trade</button>
+  <button class="navbtn" data-screen="leaderboard"><span class="icon">🏆</span>Leaders</button>
+  <button class="navbtn" data-screen="support"><span class="icon">⭐</span>Support</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Generic bottom-sheet modal, reused for buy/sell/upgrade flows -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" style="position:relative;">
+    <button class="modal-close" id="modalCloseBtn">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
 
 <script>
+// =========================================================
+// CONFIG
+// =========================================================
+// ⚠️ Update this to your deployed Worker URL after `wrangler deploy`.
+const API = "https://raspy-mud-39d0.demchukandriy2.workers.dev";
 
-const tg = window.Telegram.WebApp;
-
-tg.ready();
-tg.expand();
-
-const API =
-  "https://old-haze-267f.demchukandriy2.workers.dev";
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
 
 let telegramId = null;
-let player = null;
-let pendingCoins = 0;
-let stocks = [];
-
-
-const balanceElement =
-  document.getElementById("balance");
-
-const incomeElement =
-  document.getElementById("income");
-
-const pendingElement =
-  document.getElementById("pending");
-
-const collectButton =
-  document.getElementById("collectButton");
-
-const statusElement =
-  document.getElementById("status");
-
-const businessList =
-  document.getElementById("businessList");
-
-const stockList =
-  document.getElementById("stockList");
-
-const portfolioList =
-  document.getElementById("portfolioList");
-
-const portfolioSummary =
-  document.getElementById("portfolioSummary");
-
-const marketTime =
-  document.getElementById("marketTime");
-
-const marketEvent =
-  document.getElementById("marketEvent");
-
-
-/* =========================
-   SECTION NAVIGATION
-========================= */
-
-function showSection(
-  sectionName,
-  button
-) {
-
-  document
-    .querySelectorAll(".section")
-    .forEach(section => {
-      section.classList.remove("active");
-    });
-
-  const target =
-    document.getElementById(
-      "section-" + sectionName
-    );
-
-  if (target) {
-    target.classList.add("active");
-  }
-
-  document
-    .querySelectorAll(".nav-button")
-    .forEach(navButton => {
-      navButton.classList.remove("active");
-    });
-
-  if (button) {
-    button.classList.add("active");
-  }
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-
-  /* Load section-specific data when opened */
-
-  if (sectionName === "stocks") {
-    loadStocks();
-    loadPortfolio();
-  }
-
-  if (sectionName === "pets") {
-    loadPets();
-    loadCases();
-  }
-
-}
-
-
-/* =========================
-   TELEGRAM USER
-========================= */
-
-if (
-  tg.initDataUnsafe &&
-  tg.initDataUnsafe.user
-) {
-
-  telegramId =
-    String(tg.initDataUnsafe.user.id);
-
-  loadPlayer();
-  loadBusinesses();
-  loadStocks();
-  loadPortfolio();
-
+let tgUsername = null;
+if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+  telegramId = String(tg.initDataUnsafe.user.id);
+  tgUsername = tg.initDataUnsafe.user.username || null;
 } else {
-
-  statusElement.textContent =
-    "Открой игру через Telegram";
-
+  // Fallback for testing outside Telegram (browser preview).
+  telegramId = localStorage.getItem("dev_telegram_id") || String(Date.now());
+  localStorage.setItem("dev_telegram_id", telegramId);
+  tgUsername = "dev_" + telegramId.slice(-4);
 }
 
+let player = null;
+let pendingTimer = null;
 
-/* =========================
-   LOAD PLAYER
-========================= */
+// =========================================================
+// UTILS
+// =========================================================
+function fmt(n) {
+  n = Math.floor(Number(n) || 0);
+  return n.toLocaleString("en-US");
+}
 
-async function loadPlayer() {
+function showToast(message, isError) {
+  const t = document.getElementById("toast");
+  t.textContent = message;
+  t.className = "toast show" + (isError ? " error" : "");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => { t.className = "toast"; }, 2600);
+}
+
+async function api(path, opts) {
+  opts = opts || {};
   try {
-    const response = await fetch(
-      API + "/player?telegram_id=" + encodeURIComponent(telegramId)
-    );
-    const data = await response.json();
-    if (!response.ok || data.error) throw new Error(data.error || "Player load failed");
-    player = data;
-    pendingCoins = Number(data.earned || 0);
-    renderPlayer();
-    statusElement.textContent = "Connected ✓";
-  } catch (error) {
-    console.error(error);
-    statusElement.textContent = "Connection error";
+    const res = await fetch(API + path, opts);
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Request failed");
+    }
+    setConnected(true);
+    return data;
+  } catch (e) {
+    setConnected(false);
+    showToast(e.message || "Network error", true);
+    throw e;
   }
 }
+function apiGet(path) { return api(path); }
+function apiPost(path, body) {
+  return api(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(Object.assign({ telegram_id: telegramId, username: tgUsername }, body || {})),
+  });
+}
 
+function setConnected(ok) {
+  document.getElementById("connDot").className = "conn-dot" + (ok ? "" : " off");
+}
 
-/* =========================
-   RENDER PLAYER
-========================= */
+function openModal(html) {
+  document.getElementById("modalBody").innerHTML = html;
+  document.getElementById("modalBackdrop").classList.add("show");
+}
+function closeModal() {
+  document.getElementById("modalBackdrop").classList.remove("show");
+}
+document.getElementById("modalCloseBtn").addEventListener("click", closeModal);
+document.getElementById("modalBackdrop").addEventListener("click", (e) => {
+  if (e.target.id === "modalBackdrop") closeModal();
+});
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+document.querySelectorAll(".navbtn").forEach((btn) => {
+  btn.addEventListener("click", () => switchScreen(btn.dataset.screen));
+});
+
+function switchScreen(name) {
+  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+  document.getElementById("screen-" + name).classList.add("active");
+  document.querySelectorAll(".navbtn").forEach((b) => b.classList.toggle("active", b.dataset.screen === name));
+
+  if (name === "stocks") { loadStocks(); loadPortfolio(); }
+  if (name === "pets") loadPets();
+  if (name === "trade") loadTrades();
+  if (name === "leaderboard") loadLeaderboard();
+  if (name === "businesses") loadBusinesses();
+}
+
+// =========================================================
+// PLAYER + PENDING INCOME (live counter)
+// =========================================================
+async function loadPlayer() {
+  const data = await apiGet(`/player?telegram_id=${encodeURIComponent(telegramId)}&username=${encodeURIComponent(tgUsername || "")}`);
+  player = data;
+  renderPlayer();
+  startPendingTimer();
+}
 
 function renderPlayer() {
-
-  if (!player) return;
-
-  balanceElement.textContent =
-    Number(player.balance).toLocaleString();
-
-  incomeElement.textContent =
-    Number(player.income_per_hour).toLocaleString();
-
-  updatePending();
-
+  document.getElementById("miniBalance").textContent = fmt(player.balance) + " 🪙";
+  document.getElementById("heroBalance").textContent = fmt(player.balance) + " 🪙";
+  document.getElementById("heroIncome").textContent = `+${fmt(player.income_per_hour)} 🪙 / hour`;
 }
 
-
-/* =========================
-   PENDING INCOME
-========================= */
-
-function updatePending() {
-
-  if (!player) return;
-
-  const now = Date.now();
-
-  const secondsPassed =
-    Math.max(
-      0,
-      now / 1000 - Number(player.last_seen || now / 1000)
-    );
-
-  pendingCoins =
-    Math.floor(
-      secondsPassed *
-      player.income_per_hour /
-      3600
-    );
-
-  pendingElement.textContent =
-    pendingCoins.toLocaleString();
-
-  collectButton.textContent =
-    "COLLECT +" +
-    pendingCoins.toLocaleString() +
-    " 🪙";
-
+function startPendingTimer() {
+  clearInterval(pendingTimer);
+  updatePendingDisplay();
+  pendingTimer = setInterval(updatePendingDisplay, 1000);
 }
 
-setInterval(
-  updatePending,
-  1000
-);
+function updatePendingDisplay() {
+  if (!player) return;
+  const nowSec = Date.now() / 1000;
+  const elapsed = Math.max(0, nowSec - Number(player.last_seen));
+  const pending = Math.floor((elapsed * Number(player.income_per_hour)) / 3600);
 
+  document.getElementById("pendingValue").textContent = `+${fmt(pending)} 🪙`;
+  const btn = document.getElementById("collectBtn");
+  btn.textContent = `Collect +${fmt(pending)} 🪙`;
+  btn.disabled = pending <= 0;
+}
 
-/* =========================
-   COLLECT
-========================= */
+document.getElementById("collectBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("collectBtn");
+  btn.disabled = true;
+  try {
+    const res = await apiPost("/collect");
+    showToast(`+${fmt(res.collected)} 🪙 collected`);
+    player.balance = res.balance;
+    player.income_per_hour = res.income_per_hour;
+    player.last_seen = Date.now() / 1000;
+    renderPlayer();
+    updatePendingDisplay();
+  } catch (e) { /* toast already shown */ }
+});
 
-collectButton.addEventListener(
-  "click",
-  async function() {
-
-    if (!telegramId) return;
-
-    collectButton.disabled = true;
-
-    try {
-
-      const response =
-        await fetch(
-          API +
-          "/collect?telegram_id=" +
-          encodeURIComponent(telegramId)
-        );
-
-      const data =
-        await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error);
-      }
-
-      player.balance =
-        data.balance;
-
-      player.last_seen =
-        Math.floor(Date.now() / 1000);
-
-      renderPlayer();
-
-      statusElement.textContent =
-        "+" +
-        Number(data.collected || 0).toLocaleString() +
-        " 🪙 collected ✓";
-
-    } catch (error) {
-
-      console.error(error);
-
-      statusElement.textContent =
-        "Error";
-
-    }
-
-    collectButton.disabled = false;
-
-  }
-);
-
-
-/* =========================
-   LOAD BUSINESSES
-========================= */
-
+// =========================================================
+// BUSINESSES
+// =========================================================
 async function loadBusinesses() {
-  try {
-    const response = await fetch(
-      API + "/businesses?telegram_id=" + encodeURIComponent(telegramId)
-    );
-    const data = await response.json();
-    if (!response.ok || data.error) throw new Error(data.error || "Businesses load failed");
+  const data = await apiGet(`/businesses?telegram_id=${encodeURIComponent(telegramId)}`);
+  renderBusinesses(data.businesses);
+}
 
-    businessList.innerHTML = "";
-    (data.businesses || []).forEach(business => {
-      const div = document.createElement("div");
-      div.className = "business";
-      const level = Number(business.level || 0);
-      const owned = level > 0;
-      const buttonText = owned ? "UPGRADE" : "BUY";
-      const buttonClass = owned ? "business-button upgrade" : "business-button";
-      const price = owned ? Number(business.upgrade_price) : Number(business.price);
-      const incomeText = owned
-        ? "+" + Number(business.current_income).toLocaleString() + " 🪙 / hour"
-        : "+" + Number(business.income_per_hour).toLocaleString() + " 🪙 / hour";
-      const nextText = owned
-        ? "Next: +" + Number(business.next_income).toLocaleString() + " 🪙 / hour"
-        : "Start at Lv.1";
-      div.innerHTML = `
-        <div class="business-top">
-          <div class="business-info">
-            <div class="business-name">${getBusinessEmoji(business.id)} ${business.name}</div>
-            <div class="business-level">${owned ? "Level " + level : "Not owned"}</div>
-            <div class="business-income">${incomeText}</div>
-            <div class="business-next">${nextText}</div>
-            <div class="business-price">💰 ${price.toLocaleString()}</div>
+function renderBusinesses(list) {
+  const el = document.getElementById("businessList");
+  el.innerHTML = "";
+  list.forEach((b) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    if (!b.owned) {
+      card.innerHTML = `
+        <div class="card-row">
+          <div class="card-left">
+            <div>
+              <div class="card-title">${b.name}</div>
+              <div class="card-sub">+${fmt(b.income_per_hour)} 🪙/hour · ${fmt(b.price)} 🪙</div>
+            </div>
           </div>
-          <button class="${buttonClass}" onclick="${owned ? `upgradeBusiness(${business.id})` : `buyBusiness(${business.id})`}">${buttonText}</button>
+          <button class="pill-btn gold" data-buy="${b.id}">Buy</button>
         </div>`;
-      businessList.appendChild(div);
+    } else {
+      const upgradeLabel = b.max_level ? "Max level" : `Upgrade · ${fmt(b.upgrade_price)} 🪙`;
+      card.innerHTML = `
+        <div class="card-row">
+          <div class="card-left">
+            <div>
+              <div class="card-title">${b.name} <span class="card-sub">Lv. ${b.level}</span></div>
+              <div class="card-sub">+${fmt(b.current_income_per_hour)} 🪙/hour${b.max_level ? "" : ` → +${fmt(b.next_income_per_hour)}`}</div>
+            </div>
+          </div>
+          <button class="pill-btn" ${b.max_level ? "disabled" : `data-upgrade="${b.id}"`}>${upgradeLabel}</button>
+        </div>`;
+    }
+    el.appendChild(card);
+  });
+
+  el.querySelectorAll("[data-buy]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        const res = await apiPost("/buy-business", { business_id: Number(btn.dataset.buy) });
+        player.balance = res.balance;
+        player.income_per_hour = res.income_per_hour;
+        renderPlayer();
+        showToast("Business purchased");
+        loadBusinesses();
+      } catch (e) { btn.disabled = false; }
     });
-  } catch (error) {
-    console.error(error);
-    businessList.innerHTML = "Не удалось загрузить бизнесы";
-  }
+  });
+  el.querySelectorAll("[data-upgrade]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        const res = await apiPost("/upgrade-business", { business_id: Number(btn.dataset.upgrade) });
+        player.balance = res.balance;
+        player.income_per_hour = res.income_per_hour;
+        renderPlayer();
+        showToast(`Upgraded to level ${res.new_level}`);
+        loadBusinesses();
+      } catch (e) { btn.disabled = false; }
+    });
+  });
 }
 
+// =========================================================
+// STOCKS
+// =========================================================
+let stockCache = [];
 
-/* =========================
-   BUY BUSINESS
-========================= */
-
-async function buyBusiness(businessId) {
-  try {
-    const response = await fetch(
-      API + "/buy-business?telegram_id=" + encodeURIComponent(telegramId) +
-      "&business_id=" + businessId
-    );
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      alert(data.error === "Not enough balance" ? "Недостаточно монет!" : data.error);
-      return;
-    }
-    player.balance = data.balance;
-    player.income_per_hour = data.income_per_hour;
-    player.last_seen = Math.floor(Date.now() / 1000);
-    renderPlayer();
-    statusElement.textContent = "🏪 Business purchased ✓";
-    await loadBusinesses();
-  } catch (error) {
-    console.error(error);
-    statusElement.textContent = "Purchase error";
-  }
-}
-
-
-/* =========================
-   UPGRADE BUSINESS
-========================= */
-
-async function upgradeBusiness(businessId) {
-  try {
-    const response = await fetch(
-      API + "/upgrade-business?telegram_id=" + encodeURIComponent(telegramId) +
-      "&business_id=" + businessId
-    );
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      alert(data.error === "Not enough balance" ? "Недостаточно монет!" : data.error);
-      return;
-    }
-    player.balance = data.balance;
-    player.income_per_hour = data.income_per_hour;
-    player.last_seen = Math.floor(Date.now() / 1000);
-    renderPlayer();
-    statusElement.textContent = "⬆️ Upgraded to Level " + data.level + " ✓";
-    await loadBusinesses();
-  } catch (error) {
-    console.error(error);
-    statusElement.textContent = "Upgrade error";
-  }
-}
-
-
-/* =========================
-   LOAD STOCKS
-========================= */
+document.querySelectorAll("[data-stocktab]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-stocktab]").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    const showMarket = btn.dataset.stocktab === "market";
+    document.getElementById("stockMarket").style.display = showMarket ? "" : "none";
+    document.getElementById("stockPortfolio").style.display = showMarket ? "none" : "";
+  });
+});
 
 async function loadStocks() {
-  try {
-    stockList.innerHTML = "Loading stocks...";
-    const response = await fetch(API + "/stocks");
-    const data = await response.json();
-    if (!response.ok || data.error) throw new Error(data.error || "Stocks load failed");
-    stocks = data.stocks || [];
-    renderStocks();
-    if (stocks.length > 0 && stocks[0].last_update) {
-      marketTime.textContent = "Last update: " +
-        new Date(Number(stocks[0].last_update) * 1000).toLocaleTimeString();
-    }
-    await loadPortfolio();
-  } catch (error) {
-    console.error(error);
-    stockList.innerHTML = "Не удалось загрузить акции";
-  }
+  const data = await apiGet("/stocks");
+  stockCache = data.stocks;
+  renderStocks(data.stocks);
 }
 
-
-/* =========================
-   RENDER STOCKS
-========================= */
-
-function renderStocks() {
-
-  stockList.innerHTML = "";
-
-  stocks.forEach(stock => {
-
-    const div =
-      document.createElement("div");
-
-    div.className =
-      "stock";
-
-    const risk =
-      getStockRisk(stock.symbol);
-
-    const emoji =
-      getStockEmoji(stock.symbol);
-
-    div.innerHTML = `
-
-      <div class="stock-top">
-
-        <div class="stock-info">
-
-          <div class="stock-name">
-            ${emoji} ${stock.name}
+function renderStocks(list) {
+  const el = document.getElementById("stockMarket");
+  el.innerHTML = "";
+  list.forEach((s) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-row">
+        <div class="card-left">
+          <span class="card-emoji">${s.emoji}</span>
+          <div>
+            <div class="card-title">${s.symbol} <span class="card-sub">${s.name}</span></div>
+            <div class="card-sub">${fmt(s.price)} 🪙 · volatility ${(s.volatility * 100).toFixed(1)}%</div>
           </div>
-
-          <div class="stock-symbol">
-            ${stock.symbol}
-          </div>
-
-          <div class="stock-price">
-            🪙 ${Number(stock.price).toLocaleString()}
-          </div>
-
-          <div class="stock-risk">
-            Risk: ${risk}
-          </div>
-
         </div>
-
-      </div>
-
-      <input
-        class="quantity-input"
-        id="quantity-${stock.id}"
-        type="number"
-        min="1"
-        value="1"
-        placeholder="Количество"
-      >
-
-      <div class="stock-buttons">
-
-        <button
-          class="buy-stock"
-          onclick="buyStock(${stock.id})"
-        >
-          BUY
-        </button>
-
-        <button
-          class="sell-stock"
-          onclick="sellStock(${stock.id})"
-        >
-          SELL
-        </button>
-
-      </div>
-
-    `;
-
-    stockList.appendChild(div);
-
+        <button class="pill-btn gold" data-trade-stock="${s.id}">Trade</button>
+      </div>`;
+    el.appendChild(card);
   });
 
+  el.querySelectorAll("[data-trade-stock]").forEach((btn) => {
+    btn.addEventListener("click", () => openStockModal(Number(btn.dataset.tradeStock)));
+  });
 }
 
+function openStockModal(stockId) {
+  const s = stockCache.find((x) => x.id === stockId);
+  if (!s) return;
+  openModal(`
+    <h3>${s.emoji} ${s.name} (${s.symbol})</h3>
+    <div class="card-sub" style="margin-bottom:14px;">Current price: ${fmt(s.price)} 🪙</div>
+    <div class="qty-row">
+      <input type="number" id="stockQty" placeholder="Quantity" min="1" value="1">
+      <button class="pill-btn teal" id="stockBuyBtn">Buy</button>
+      <button class="pill-btn red" id="stockSellBtn">Sell</button>
+    </div>
+  `);
+  document.getElementById("stockBuyBtn").addEventListener("click", () => submitStockOrder(stockId, "buy"));
+  document.getElementById("stockSellBtn").addEventListener("click", () => submitStockOrder(stockId, "sell"));
+}
 
-/* =========================
-   BUY STOCK
-========================= */
-
-async function buyStock(
-  stockId
-) {
-
-  const input =
-    document.getElementById(
-      "quantity-" + stockId
-    );
-
-  const quantity =
-    Number(input.value);
-
-  if (
-    !quantity ||
-    quantity < 1 ||
-    !Number.isInteger(quantity)
-  ) {
-
-    alert(
-      "Введите целое количество акций"
-    );
-
-    return;
-  }
-
+async function submitStockOrder(stockId, side) {
+  const qty = Number(document.getElementById("stockQty").value);
+  if (!qty || qty <= 0) return showToast("Enter a valid quantity", true);
   try {
-
-    const response =
-      await fetch(
-        API +
-        "/buy-stock?telegram_id=" +
-        encodeURIComponent(telegramId) +
-        "&stock_id=" +
-        stockId +
-        "&quantity=" +
-        quantity
-      );
-
-    const data =
-      await response.json();
-
-    if (!data.success) {
-
-      alert(
-        data.error === "Not enough coins"
-          ? "Недостаточно монет!"
-          : data.error
-      );
-
-      return;
-    }
-
-    player.balance =
-      data.balance;
-
-    player.last_seen =
-      Date.now();
-
+    const path = side === "buy" ? "/buy-stock" : "/sell-stock";
+    const res = await apiPost(path, { stock_id: stockId, quantity: qty });
+    player.balance = res.balance;
     renderPlayer();
-
-    statusElement.textContent =
-      "📈 Bought " +
-      quantity +
-      " " +
-      data.symbol +
-      " ✓";
-
-    await loadStocks();
-
-  } catch (error) {
-
-    console.error(error);
-
-    statusElement.textContent =
-      "Stock purchase error";
-
-  }
-
+    closeModal();
+    showToast(side === "buy" ? "Purchased" : "Sold");
+    loadPortfolio();
+  } catch (e) {}
 }
-
-
-/* =========================
-   SELL STOCK
-========================= */
-
-async function sellStock(
-  stockId
-) {
-
-  const input =
-    document.getElementById(
-      "quantity-" + stockId
-    );
-
-  const quantity =
-    Number(input.value);
-
-  if (
-    !quantity ||
-    quantity < 1 ||
-    !Number.isInteger(quantity)
-  ) {
-
-    alert(
-      "Введите целое количество акций"
-    );
-
-    return;
-  }
-
-  try {
-
-    const response =
-      await fetch(
-        API +
-        "/sell-stock?telegram_id=" +
-        encodeURIComponent(telegramId) +
-        "&stock_id=" +
-        stockId +
-        "&quantity=" +
-        quantity
-      );
-
-    const data =
-      await response.json();
-
-    if (!data.success) {
-
-      alert(data.error);
-
-      return;
-    }
-
-    player.balance =
-      data.balance;
-
-    player.last_seen =
-      Date.now();
-
-    renderPlayer();
-
-    statusElement.textContent =
-      "📉 Sold " +
-      quantity +
-      " " +
-      data.symbol +
-      " ✓";
-
-    await loadStocks();
-
-  } catch (error) {
-
-    console.error(error);
-
-    statusElement.textContent =
-      "Stock sale error";
-
-  }
-
-}
-
-
-/* =========================
-   LOAD PORTFOLIO
-========================= */
 
 async function loadPortfolio() {
-  if (!telegramId) return;
-  try {
-    const response = await fetch(
-      API + "/portfolio?telegram_id=" + encodeURIComponent(telegramId)
-    );
-    const data = await response.json();
-    if (!response.ok || data.error) throw new Error(data.error || "Portfolio load failed");
-    renderPortfolio(data.portfolio || []);
-  } catch (error) {
-    console.error(error);
-    portfolioSummary.innerHTML = "Не удалось загрузить портфель";
-  }
-}
-
-
-/* =========================
-   RENDER PORTFOLIO
-========================= */
-
-function renderPortfolio(
-  portfolio
-) {
-
-  let totalValue = 0;
-  let totalInvested = 0;
-
-  portfolio.forEach(stock => {
-
-    totalValue +=
-      Number(stock.value);
-
-    totalInvested +=
-      Number(stock.avg_price) * Number(stock.quantity);
-
-  });
-
-  const totalProfit =
-    totalValue - totalInvested;
-
-  const profitClass =
-    totalProfit >= 0
-      ? "profit"
-      : "loss";
-
-  portfolioSummary.innerHTML = `
-
-    <div class="portfolio-row">
-      <span>Portfolio value</span>
-      <b>
-        🪙 ${totalValue.toLocaleString()}
-      </b>
-    </div>
-
-    <div class="portfolio-row">
-      <span>Invested</span>
-      <span>
-        🪙 ${totalInvested.toLocaleString()}
-      </span>
-    </div>
-
-    <div class="portfolio-row">
-      <span>Profit / Loss</span>
-      <b class="${profitClass}">
-        ${
-          totalProfit >= 0
-            ? "+"
-            : ""
-        }${totalProfit.toLocaleString()} 🪙
-      </b>
-    </div>
-
-  `;
-
-  portfolioList.innerHTML = "";
-
-  if (portfolio.length === 0) {
-
-    portfolioList.innerHTML =
-      '<div style="color:#9aa3b2;text-align:center;">У тебя пока нет акций</div>';
-
+  const data = await apiGet(`/portfolio?telegram_id=${encodeURIComponent(telegramId)}`);
+  const el = document.getElementById("stockPortfolio");
+  if (data.portfolio.length === 0) {
+    el.innerHTML = `<div class="empty-state">You don't own any stocks yet.</div>`;
     return;
   }
-
-  portfolio.forEach(stock => {
-
-    const div =
-      document.createElement("div");
-
-    div.className =
-      "stock";
-
-    const profit =
-      (Number(stock.price) - Number(stock.avg_price)) * Number(stock.quantity);
-
-    const profitClass =
-      profit >= 0
-        ? "profit"
-        : "loss";
-
-    div.innerHTML = `
-
-      <div class="stock-top">
-
-        <div class="stock-info">
-
-          <div class="stock-name">
-            ${getStockEmoji(stock.symbol)}
-            ${stock.name}
+  el.innerHTML = `<div class="card-sub" style="margin:4px 2px 10px;">Total value: ${fmt(data.total_value)} 🪙</div>`;
+  data.portfolio.forEach((p) => {
+    const pl = p.profit_loss;
+    const badge = pl >= 0 ? `<span class="badge up">+${fmt(pl)}</span>` : `<span class="badge down">${fmt(pl)}</span>`;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-row">
+        <div class="card-left">
+          <span class="card-emoji">${p.emoji}</span>
+          <div>
+            <div class="card-title">${p.symbol} ×${fmt(p.quantity)}</div>
+            <div class="card-sub">avg ${fmt(p.avg_price)} 🪙 · now ${fmt(p.current_price)} 🪙</div>
           </div>
-
-          <div class="stock-symbol">
-            ${stock.symbol}
-          </div>
-
-          <div class="stock-owned">
-            ${Number(stock.quantity).toLocaleString()}
-            shares
-          </div>
-
-          <div class="stock-owned">
-            Avg. price:
-            🪙 ${Number(stock.avg_price).toLocaleString()}
-          </div>
-
-          <div class="stock-owned">
-            Current:
-            🪙 ${Number(stock.price).toLocaleString()}
-          </div>
-
-          <div class="${profitClass}">
-            ${
-              profit >= 0
-                ? "+"
-                : ""
-            }${profit.toLocaleString()} 🪙
-          </div>
-
         </div>
-
-      </div>
-
-    `;
-
-    portfolioList.appendChild(div);
-
+        ${badge}
+      </div>`;
+    el.appendChild(card);
   });
-
 }
 
-
-/* =========================
-   PETS
-========================= */
-
-async function loadCases() {
-  const caseList = document.getElementById("caseList");
-  if (!caseList) return;
-  try {
-    const response = await fetch(API + "/cases");
-    const data = await response.json();
-    if (!response.ok || data.error) throw new Error(data.error || "Cases load failed");
-    caseList.innerHTML = "";
-    (data.cases || []).forEach(gameCase => {
-      const div = document.createElement("div");
-      div.className = "case";
-      div.innerHTML = `
-        <div class="case-row">
-          <div class="case-info">
-            <div class="case-name">${gameCase.emoji} ${gameCase.name}</div>
-            <div class="case-desc">${gameCase.description}</div>
-            <div class="case-price">💰 ${Number(gameCase.price).toLocaleString()} 🪙</div>
-          </div>
-          <button onclick="openCase(${gameCase.id})">OPEN</button>
-        </div>`;
-      caseList.appendChild(div);
-    });
-  } catch (error) {
-    console.error(error);
-    caseList.innerHTML = "Не удалось загрузить кейсы";
-  }
-}
+// =========================================================
+// PETS
+// =========================================================
+let myPetsCache = [];
 
 async function loadPets() {
-  const petList = document.getElementById("petList");
-  if (!petList) return;
-  try {
-    const response = await fetch(API + "/pets?telegram_id=" + encodeURIComponent(telegramId));
-    const data = await response.json();
-    if (!response.ok || data.error) throw new Error(data.error || "Pets load failed");
+  const data = await apiGet(`/pets?telegram_id=${encodeURIComponent(telegramId)}`);
+  myPetsCache = data.pets;
+  renderActivePet(data.active_pet, data.pet_equip_available_at);
+  renderMyPets(data.pets, data.active_pet ? data.active_pet.id : null, data.pet_equip_available_at);
+  loadCases();
+}
 
-    renderActivePet(data.active_pet_id, data.pet_equip_available_at);
-    petList.innerHTML = "";
-
-    if (!data.pets || data.pets.length === 0) {
-      petList.innerHTML = '<div class="status">У тебя пока нет питомцев</div>';
-      return;
-    }
-
-    data.pets.forEach(pet => {
-      const div = document.createElement("div");
-      div.className = "pet";
-      div.innerHTML = `
-        <div class="pet-row">
-          <div class="pet-info">
-            <div class="pet-name rarity-${pet.rarity}">${pet.emoji} ${pet.name} ×${Number(pet.quantity)}</div>
-            <div class="pet-meta">${pet.rarity} · Sell: ${Number(pet.sell_value).toLocaleString()} 🪙</div>
-            <div class="pet-bonus">${pet.bonus_text}</div>
-          </div>
-          <div>
-            <button onclick="equipPet(${pet.id})">EQUIP</button>
-            <button onclick="sellPet(${pet.id})" style="background:#dc3545;margin-top:6px;">SELL 1</button>
-          </div>
-        </div>`;
-      petList.appendChild(div);
-    });
-  } catch (error) {
-    console.error(error);
-    petList.innerHTML = "Не удалось загрузить питомцев";
+function renderActivePet(pet, availableAt) {
+  const el = document.getElementById("activePetCard");
+  const now = Date.now() / 1000;
+  const onCooldown = now < Number(availableAt);
+  const cooldownText = onCooldown ? cooldownLabel(availableAt - now) : "";
+  if (!pet) {
+    el.innerHTML = `<div class="empty-state" style="padding:10px 0;">No active pet equipped</div>`;
+    return;
   }
+  el.innerHTML = `
+    <div class="card-row">
+      <div class="card-left">
+        <span class="card-emoji">${pet.emoji}</span>
+        <div>
+          <div class="card-title">${pet.name}</div>
+          <div class="card-sub">+${pet.bonus_value}% all income</div>
+        </div>
+      </div>
+      <span class="badge ${pet.rarity.toLowerCase()}">${pet.rarity}</span>
+    </div>
+    ${onCooldown ? `<div class="cooldown-note">Pet change available in ${cooldownText}</div>` : ""}
+  `;
 }
 
-function renderActivePet(activePetId, availableAt) {
-  const el = document.getElementById("activePet");
-  const cooldown = document.getElementById("petCooldown");
-  if (!el || !cooldown) return;
-  el.innerHTML = activePetId
-    ? '<div class="active-pet">🐾 Active pet ID: ' + activePetId + '</div>'
-    : '<div class="active-pet">🐾 No active pet</div>';
-  const left = Math.max(0, Number(availableAt || 0) - Math.floor(Date.now() / 1000));
-  cooldown.textContent = left > 0
-    ? "Change pet available in " + formatCooldown(left)
-    : "You can change your pet now";
-}
-
-function formatCooldown(seconds) {
+function cooldownLabel(seconds) {
+  seconds = Math.max(0, Math.floor(seconds));
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  return h + "h " + m + "m";
+  return `${h}h ${m}m`;
 }
 
-async function openCase(caseId) {
-  try {
-    const response = await fetch(
-      API + "/open-case?telegram_id=" + encodeURIComponent(telegramId) +
-      "&case_id=" + caseId
-    );
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      alert(data.error === "Not enough balance" ? "Недостаточно монет!" : data.error);
-      return;
-    }
-    player.balance = data.balance;
-    player.last_seen = Math.floor(Date.now() / 1000);
-    renderPlayer();
-    alert("🎉 Получен питомец: " + data.pet.emoji + " " + data.pet.name +
-      "\n" + data.pet.rarity + " · " + data.pet.bonus_text);
-    await loadPets();
-  } catch (error) {
-    console.error(error);
-    alert("Ошибка открытия кейса");
+async function loadCases() {
+  const data = await apiGet("/cases");
+  const el = document.getElementById("casesList");
+  el.innerHTML = `<div class="drop-chances" style="margin:0 2px 10px;">Drop chances: ${data.drop_chances.common}% Common · ${data.drop_chances.rare}% Rare · ${data.drop_chances.legendary}% Legendary</div>`;
+  data.cases.forEach((c) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-row">
+        <div class="card-left">
+          <span class="card-emoji">${c.emoji}</span>
+          <div>
+            <div class="card-title">${c.name}</div>
+            <div class="card-sub">${c.description} · ${fmt(c.price)} 🪙</div>
+          </div>
+        </div>
+        <button class="pill-btn gold" data-open-case="${c.id}">Open</button>
+      </div>`;
+    el.appendChild(card);
+  });
+  el.querySelectorAll("[data-open-case]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        const res = await apiPost("/open-case", { case_id: Number(btn.dataset.openCase) });
+        player.balance = res.balance;
+        renderPlayer();
+        showToast(`You got ${res.pet.emoji} ${res.pet.name} (${res.pet.rarity})!`);
+        loadPets();
+      } catch (e) {} finally { btn.disabled = false; }
+    });
+  });
+}
+
+function renderMyPets(pets, activePetId, availableAt) {
+  const el = document.getElementById("myPetsList");
+  el.innerHTML = "";
+  if (pets.length === 0) {
+    el.innerHTML = `<div class="empty-state">Your pets will appear here after opening a case.</div>`;
+    return;
   }
+  const now = Date.now() / 1000;
+  const onCooldown = now < Number(availableAt);
+  pets.forEach((p) => {
+    const isActive = p.pet_id === activePetId;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-row">
+        <div class="card-left">
+          <span class="card-emoji">${p.emoji}</span>
+          <div>
+            <div class="card-title">${p.name} ×${fmt(p.quantity)} ${isActive ? "· active" : ""}</div>
+            <div class="card-sub">+${p.bonus_value}% all income · sells for ${fmt(p.sell_value)} 🪙</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="pill-btn" data-equip="${p.pet_id}" ${isActive || onCooldown ? "disabled" : ""}>Equip</button>
+          <button class="pill-btn red" data-sell="${p.pet_id}" ${isActive ? "disabled" : ""}>Sell</button>
+        </div>
+      </div>`;
+    el.appendChild(card);
+  });
+
+  el.querySelectorAll("[data-equip]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        const res = await apiPost("/equip-pet", { pet_id: Number(btn.dataset.equip) });
+        player.income_per_hour = res.income_per_hour;
+        renderPlayer();
+        showToast("Pet equipped");
+        loadPets();
+      } catch (e) { btn.disabled = false; }
+    });
+  });
+  el.querySelectorAll("[data-sell]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        const res = await apiPost("/sell-pet", { pet_id: Number(btn.dataset.sell), quantity: 1 });
+        player.balance = res.balance;
+        renderPlayer();
+        showToast("Pet sold");
+        loadPets();
+      } catch (e) {} finally { btn.disabled = false; }
+    });
+  });
 }
 
-async function equipPet(petId) {
+// =========================================================
+// TRADE
+// =========================================================
+document.getElementById("tradeCreateBtn").addEventListener("click", async () => {
+  const input = document.getElementById("tradeUsernameInput");
+  const username = input.value.trim();
+  if (!username) return showToast("Enter a username", true);
   try {
-    const response = await fetch(
-      API + "/equip-pet?telegram_id=" + encodeURIComponent(telegramId) +
-      "&pet_id=" + petId
-    );
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      if (data.pet_equip_available_at) {
-        const left = Math.max(0, Number(data.pet_equip_available_at) - Math.floor(Date.now() / 1000));
-        alert("Питомца пока нельзя сменить. Осталось: " + formatCooldown(left));
-      } else alert(data.error || "Ошибка");
-      return;
-    }
-    player.income_per_hour = data.income_per_hour;
-    player.last_seen = Math.floor(Date.now() / 1000);
-    renderPlayer();
-    await loadPets();
-  } catch (error) {
-    console.error(error);
-    alert("Ошибка экипировки");
-  }
+    await apiPost("/trade/create", { target_username: username });
+    input.value = "";
+    showToast("Trade request sent");
+    loadTrades();
+  } catch (e) {}
+});
+
+async function loadTrades() {
+  const [incoming, outgoing] = await Promise.all([
+    apiGet(`/trade/incoming?telegram_id=${encodeURIComponent(telegramId)}`),
+    apiGet(`/trade/outgoing?telegram_id=${encodeURIComponent(telegramId)}`),
+  ]);
+  renderTradeList("tradeIncoming", incoming.trades, true);
+  renderTradeList("tradeOutgoing", outgoing.trades, false);
 }
 
-async function sellPet(petId) {
+function renderTradeList(elId, trades, isIncoming) {
+  const el = document.getElementById(elId);
+  el.innerHTML = "";
+  if (trades.length === 0) {
+    el.innerHTML = `<div class="empty-state">Nothing here yet.</div>`;
+    return;
+  }
+  trades.forEach((t) => {
+    const other = isIncoming ? t.creator_id : t.receiver_id;
+    const card = document.createElement("div");
+    card.className = "card";
+    let actions = `<button class="pill-btn gold" data-open-trade="${t.id}">Open</button>`;
+    if (isIncoming && t.status === "pending") {
+      actions = `
+        <button class="pill-btn teal" data-accept="${t.id}">Accept</button>
+        <button class="pill-btn red" data-decline="${t.id}">Decline</button>`;
+    }
+    card.innerHTML = `
+      <div class="card-row">
+        <div>
+          <div class="card-title">Trade #${t.id}</div>
+          <div class="card-sub">with ${other} · ${t.status}</div>
+        </div>
+        <div style="display:flex; gap:6px;">${actions}</div>
+      </div>`;
+    el.appendChild(card);
+  });
+
+  el.querySelectorAll("[data-accept]").forEach((btn) => btn.addEventListener("click", async () => {
+    try { await apiPost("/trade/accept", { trade_id: Number(btn.dataset.accept) }); showToast("Trade accepted"); loadTrades(); } catch (e) {}
+  }));
+  el.querySelectorAll("[data-decline]").forEach((btn) => btn.addEventListener("click", async () => {
+    try { await apiPost("/trade/decline", { trade_id: Number(btn.dataset.decline) }); showToast("Trade declined"); loadTrades(); } catch (e) {}
+  }));
+  el.querySelectorAll("[data-open-trade]").forEach((btn) => btn.addEventListener("click", () => openTradeModal(Number(btn.dataset.openTrade))));
+}
+
+async function openTradeModal(tradeId) {
+  const data = await apiGet(`/trade?id=${tradeId}`);
+  const t = data.trade;
+  const isCreator = t.creator_id === telegramId;
+  const myOffer = isCreator ? t.creator_offer : t.receiver_offer;
+  const theirOffer = isCreator ? t.receiver_offer : t.creator_offer;
+  const myConfirmed = isCreator ? t.creator_confirmed : t.receiver_confirmed;
+  const theirConfirmed = isCreator ? t.receiver_confirmed : t.creator_confirmed;
+
+  const petOptions = myPetsCache.map((p) => `<option value="${p.pet_id}">${p.emoji} ${p.name} (×${p.quantity})</option>`).join("");
+
+  openModal(`
+    <h3>Trade #${t.id} · ${t.status}</h3>
+    <div class="section-title" style="margin-top:0;">Your offer</div>
+    ${myOffer.length ? myOffer.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing offered</div>`}
+    <div class="section-title">Their offer</div>
+    ${theirOffer.length ? theirOffer.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing offered</div>`}
+
+    ${t.status === "active" ? `
+      <div class="section-title">Add a pet to your offer</div>
+      <div class="qty-row">
+        <select id="tradePetSelect" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:9px; padding:9px;">${petOptions}</select>
+        <input type="number" id="tradePetQty" value="1" min="1" style="width:70px;">
+        <button class="pill-btn" id="tradeAddBtn">Add</button>
+      </div>
+      <div class="card-sub" style="margin-top:12px;">You: ${myConfirmed ? "Confirmed ✓" : "Not confirmed"} · Them: ${theirConfirmed ? "Confirmed ✓" : "Not confirmed"}</div>
+      <div class="qty-row">
+        <button class="pill-btn teal" id="tradeConfirmBtn" style="flex:1;">Confirm trade</button>
+        <button class="pill-btn red" id="tradeCancelBtn" style="flex:1;">Cancel</button>
+      </div>
+    ` : ""}
+  `);
+
+  const addBtn = document.getElementById("tradeAddBtn");
+  if (addBtn) addBtn.addEventListener("click", async () => {
+    const petId = Number(document.getElementById("tradePetSelect").value);
+    const qty = Number(document.getElementById("tradePetQty").value) || 1;
+    try {
+      await apiPost("/trade/add", { trade_id: tradeId, pet_id: petId, quantity: qty });
+      showToast("Offer updated");
+      openTradeModal(tradeId);
+    } catch (e) {}
+  });
+  const confirmBtn = document.getElementById("tradeConfirmBtn");
+  if (confirmBtn) confirmBtn.addEventListener("click", async () => {
+    try {
+      const res = await apiPost("/trade/confirm", { trade_id: tradeId });
+      if (res.status === "completed") { showToast("Trade completed!"); closeModal(); loadPets(); }
+      else showToast("Confirmed. Waiting for the other player.");
+      loadTrades();
+    } catch (e) {}
+  });
+  const cancelBtn = document.getElementById("tradeCancelBtn");
+  if (cancelBtn) cancelBtn.addEventListener("click", async () => {
+    try { await apiPost("/trade/cancel", { trade_id: tradeId }); showToast("Trade cancelled"); closeModal(); loadTrades(); } catch (e) {}
+  });
+}
+
+// =========================================================
+// LEADERBOARD
+// =========================================================
+let leaderboardCache = null;
+let lbMode = "wealth";
+
+document.querySelectorAll("[data-lbtab]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-lbtab]").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    lbMode = btn.dataset.lbtab;
+    renderLeaderboard();
+  });
+});
+
+async function loadLeaderboard() {
+  leaderboardCache = await apiGet("/leaderboard");
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  if (!leaderboardCache) return;
+  const rows = lbMode === "wealth" ? leaderboardCache.by_wealth : leaderboardCache.by_income;
+  const el = document.getElementById("leaderboardCard");
+  if (rows.length === 0) { el.innerHTML = `<div class="empty-state">No players yet.</div>`; return; }
+  el.innerHTML = rows.map((r, i) => `
+    <div class="lb-row">
+      <span class="lb-rank">${i + 1}</span>
+      <span class="lb-name">${r.username ? "@" + r.username : r.telegram_id}</span>
+      <span class="lb-value num">${lbMode === "wealth" ? fmt(r.wealth) + " 🪙" : "+" + fmt(r.income_per_hour) + "/h"}</span>
+    </div>
+  `).join("");
+}
+
+// =========================================================
+// SUPPORT
+// =========================================================
+document.getElementById("supportBtn").addEventListener("click", () => {
+  // Native Telegram Stars invoices require a server-generated invoice link
+  // (created via the Bot API's createInvoiceLink with currency "XTR").
+  // Wire this button to that endpoint once it exists on the backend.
+  showToast("Telegram Stars support is coming soon");
+});
+
+// =========================================================
+// STARTUP
+// =========================================================
+(async function start() {
   try {
-    const response = await fetch(
-      API + "/sell-pet?telegram_id=" + encodeURIComponent(telegramId) +
-      "&pet_id=" + petId + "&quantity=1"
-    );
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      alert(data.error || "Ошибка продажи");
-      return;
-    }
-    player.balance = data.balance;
-    player.last_seen = Math.floor(Date.now() / 1000);
-    renderPlayer();
-    await loadPets();
-  } catch (error) {
-    console.error(error);
-    alert("Ошибка продажи");
+    await loadPlayer();
+    await loadBusinesses();
+  } catch (e) {
+    // toast already shown by api()
   }
-}
-
-/* =========================
-   STOCK EMOJIS
-========================= */
-
-function getStockEmoji(symbol) {
-
-  const emojis = {
-
-    EMB: "🏦",
-    MMT: "🛒",
-    FDR: "🍔",
-    ATN: "🚗",
-    SPC: "🚀",
-    CRX: "💎"
-
-  };
-
-  return emojis[symbol] || "📈";
-
-}
-
-
-/* =========================
-   STOCK RISK
-========================= */
-
-function getStockRisk(symbol) {
-
-  const risks = {
-
-    EMB: "Low",
-    MMT: "Low-Medium",
-    FDR: "Medium",
-    ATN: "Medium-High",
-    SPC: "High",
-    CRX: "Very High"
-
-  };
-
-  return risks[symbol] || "Unknown";
-
-}
-
-
-/* =========================
-   BUSINESS EMOJIS
-========================= */
-
-function getBusinessEmoji(id) {
-
-  const emojis = {
-
-    1: "🏪",
-    2: "🍔",
-    3: "☕",
-    4: "🏢",
-    5: "🏭",
-    6: "🏨",
-    7: "⚓",
-    8: "✈️",
-    9: "🏦",
-    10: "🌐"
-
-  };
-
-  return emojis[id] || "🏢";
-
-}
-
-
-/* =========================
-   AUTO REFRESH
-========================= */
-
-setInterval(
-  async function() {
-
-    if (!telegramId) return;
-
-    await loadStocks();
-    await loadPortfolio();
-
-  },
-  60000
-);
-
+})();
 </script>
-
 </body>
 </html>
