@@ -223,6 +223,27 @@
     flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text);
     border-radius:var(--radius-sm); padding:12px 14px; font-size:14px;
   }
+
+  .suggested-card{
+    flex:0 0 auto; width:88px; background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:12px 8px; text-align:center; cursor:pointer;
+  }
+  .suggested-card .avatar{ font-size:26px; }
+  .suggested-card .name{ font-size:11px; color:var(--text-muted); margin-top:6px; word-break:break-word; }
+
+  .pet-chip-grid{ display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 4px; max-height:180px; overflow-y:auto; }
+  .pet-chip{
+    display:flex; align-items:center; gap:6px;
+    background:var(--surface-2); border:1px solid var(--border); border-radius:999px;
+    padding:7px 12px; font-size:12.5px; cursor:pointer; user-select:none;
+  }
+  .pet-chip.selected{ background:var(--gold); color:#1a1305; border-color:var(--gold); font-weight:600; }
+  .pet-chip.disabled{ opacity:.35; pointer-events:none; }
+
+  .offer-summary{ font-size:12.5px; color:var(--text-muted); margin-top:6px; min-height:16px; }
+
+  .stars-preset-row{ display:flex; gap:8px; margin-top:14px; }
+  .stars-preset-row button{ flex:1; }
 </style>
 </head>
 <body>
@@ -277,12 +298,18 @@
 <!-- ============ TRADE ============ -->
 <div class="screen" id="screen-trade">
   <div class="card">
-    <div class="card-title" style="margin-bottom:10px;">Start a new trade</div>
+    <div class="card-title" style="margin-bottom:10px;">Find a player</div>
     <div class="username-input-row">
       <input type="text" id="tradeUsernameInput" placeholder="@username">
-      <button class="pill-btn gold" id="tradeCreateBtn">Send</button>
+      <button class="pill-btn gold" id="tradeSearchBtn">Open</button>
     </div>
   </div>
+
+  <div class="section-title" style="display:flex; align-items:center; justify-content:space-between;">
+    <span>Suggested players</span>
+    <button class="pill-btn" id="tradeRefreshBtn" style="padding:5px 12px; font-size:11.5px;">🔄 Refresh</button>
+  </div>
+  <div id="suggestedPlayers" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;"></div>
 
   <div class="section-title">📥 Incoming</div>
   <div id="tradeIncoming"></div>
@@ -308,7 +335,11 @@
     <div class="card-sub" style="margin-bottom:18px;">
       Voluntary support via Telegram Stars. It does not change your balance, income, pets, or leaderboard position — it only helps the project keep running.
     </div>
-    <button class="pill-btn gold" id="supportBtn" style="width:100%;">Support with Telegram Stars</button>
+    <div class="stars-preset-row">
+      <button class="pill-btn gold" data-stars="50">⭐ 50</button>
+      <button class="pill-btn gold" data-stars="100">⭐ 100</button>
+      <button class="pill-btn gold" data-stars="500">⭐ 500</button>
+    </div>
   </div>
 </div>
 
@@ -790,19 +821,137 @@ function renderMyPets(pets, activePetId, availableAt) {
 // =========================================================
 // TRADE
 // =========================================================
-document.getElementById("tradeCreateBtn").addEventListener("click", async () => {
+
+// Selections live only while the builder modal is open.
+let tradeBuilderTarget = null; // { telegram_id, username, active_pet_id, pets }
+let tradeBuilderGive = {};     // pet_id -> quantity (from MY inventory)
+let tradeBuilderReceive = {};  // pet_id -> quantity (from THEIR inventory)
+
+document.getElementById("tradeSearchBtn").addEventListener("click", async () => {
   const input = document.getElementById("tradeUsernameInput");
   const username = input.value.trim();
   if (!username) return showToast("Enter a username", true);
   try {
-    await apiPost("/trade/create", { target_username: username });
-    input.value = "";
-    showToast("Trade request sent");
-    loadTrades();
+    const target = await apiGet(`/trade/lookup?username=${encodeURIComponent(username)}`);
+    openTradeBuilder(target);
   } catch (e) {}
 });
 
+document.getElementById("tradeRefreshBtn").addEventListener("click", loadSuggestedPlayers);
+
+async function loadSuggestedPlayers() {
+  const data = await apiGet(`/trade/suggested?telegram_id=${encodeURIComponent(telegramId)}`);
+  const el = document.getElementById("suggestedPlayers");
+  el.innerHTML = "";
+  if (data.players.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:16px;">No other players yet.</div>`;
+    return;
+  }
+  data.players.forEach((p) => {
+    const card = document.createElement("div");
+    card.className = "suggested-card";
+    card.innerHTML = `<div class="avatar">👤</div><div class="name">@${p.username}</div>`;
+    card.addEventListener("click", async () => {
+      try {
+        const target = await apiGet(`/trade/lookup?telegram_id=${encodeURIComponent(p.telegram_id)}`);
+        openTradeBuilder(target);
+      } catch (e) {}
+    });
+    el.appendChild(card);
+  });
+}
+
+function openTradeBuilder(target) {
+  tradeBuilderTarget = target;
+  tradeBuilderGive = {};
+  tradeBuilderReceive = {};
+  renderTradeBuilder();
+}
+
+function renderTradeBuilder() {
+  const target = tradeBuilderTarget;
+  const myPets = myPetsCache.filter((p) => p.pet_id !== (player.active_pet_id || null));
+  const theirPets = (target.pets || []).filter((p) => p.pet_id !== target.active_pet_id);
+
+  const giveChips = myPets.length
+    ? myPets.map((p) => chipHtml(p, "give", tradeBuilderGive[p.pet_id] || 0)).join("")
+    : `<div class="card-sub">You have no tradeable pets.</div>`;
+  const receiveChips = theirPets.length
+    ? theirPets.map((p) => chipHtml(p, "receive", tradeBuilderReceive[p.pet_id] || 0)).join("")
+    : `<div class="card-sub">They have no tradeable pets.</div>`;
+
+  openModal(`
+    <h3>Trade with @${target.username || target.telegram_id}</h3>
+
+    <div class="section-title" style="margin-top:0;">You give</div>
+    <div class="pet-chip-grid" id="giveChips">${giveChips}</div>
+    <div class="offer-summary" id="giveSummary"></div>
+
+    <div class="section-title">You receive</div>
+    <div class="pet-chip-grid" id="receiveChips">${receiveChips}</div>
+    <div class="offer-summary" id="receiveSummary"></div>
+
+    <div class="qty-row">
+      <button class="pill-btn teal" id="sendTradeBtn" style="flex:1;">Send Trade</button>
+      <button class="pill-btn red" id="cancelBuilderBtn" style="flex:1;">Cancel</button>
+    </div>
+  `);
+
+  document.querySelectorAll("#giveChips [data-chip]").forEach((chip) => {
+    chip.addEventListener("click", () => toggleChip(chip, "give"));
+  });
+  document.querySelectorAll("#receiveChips [data-chip]").forEach((chip) => {
+    chip.addEventListener("click", () => toggleChip(chip, "receive"));
+  });
+  updateOfferSummaries();
+
+  document.getElementById("sendTradeBtn").addEventListener("click", submitTrade);
+  document.getElementById("cancelBuilderBtn").addEventListener("click", closeModal);
+}
+
+function chipHtml(pet, side, qty) {
+  const selected = qty > 0 ? "selected" : "";
+  return `<div class="pet-chip ${selected}" data-chip="${pet.pet_id}" data-side="${side}" data-max="${pet.quantity}">
+    ${pet.emoji} ${pet.name} ${pet.quantity > 1 ? `×${pet.quantity}` : ""}
+  </div>`;
+}
+
+function toggleChip(chip, side) {
+  const petId = Number(chip.dataset.chip);
+  const store = side === "give" ? tradeBuilderGive : tradeBuilderReceive;
+  if (store[petId]) {
+    delete store[petId]; // click again to deselect — one unit per click keeps this simple and unambiguous
+    chip.classList.remove("selected");
+  } else {
+    store[petId] = 1;
+    chip.classList.add("selected");
+  }
+  updateOfferSummaries();
+}
+
+function updateOfferSummaries() {
+  const giveCount = Object.keys(tradeBuilderGive).length;
+  const receiveCount = Object.keys(tradeBuilderReceive).length;
+  document.getElementById("giveSummary").textContent = giveCount ? `${giveCount} pet type(s) selected` : "Nothing selected";
+  document.getElementById("receiveSummary").textContent = receiveCount ? `${receiveCount} pet type(s) selected` : "Nothing selected";
+}
+
+async function submitTrade() {
+  const give = Object.entries(tradeBuilderGive).map(([pet_id, quantity]) => ({ pet_id: Number(pet_id), quantity }));
+  const receive = Object.entries(tradeBuilderReceive).map(([pet_id, quantity]) => ({ pet_id: Number(pet_id), quantity }));
+  if (give.length === 0 && receive.length === 0) return showToast("Select at least one pet", true);
+
+  try {
+    await apiPost("/trade/create", { target_telegram_id: tradeBuilderTarget.telegram_id, give, receive });
+    closeModal();
+    showToast("Trade sent");
+    document.getElementById("tradeUsernameInput").value = "";
+    loadTrades();
+  } catch (e) {}
+}
+
 async function loadTrades() {
+  loadSuggestedPlayers();
   const [incoming, outgoing] = await Promise.all([
     apiGet(`/trade/incoming?telegram_id=${encodeURIComponent(telegramId)}`),
     apiGet(`/trade/outgoing?telegram_id=${encodeURIComponent(telegramId)}`),
@@ -823,16 +972,20 @@ function renderTradeList(elId, trades, isIncoming) {
     const card = document.createElement("div");
     card.className = "card";
     let actions = `<button class="pill-btn gold" data-open-trade="${t.id}">Open</button>`;
-    if (isIncoming && t.status === "pending") {
+    if (isIncoming) {
       actions = `
         <button class="pill-btn teal" data-accept="${t.id}">Accept</button>
         <button class="pill-btn red" data-decline="${t.id}">Decline</button>`;
+    } else {
+      actions = `
+        <button class="pill-btn gold" data-open-trade="${t.id}">View</button>
+        <button class="pill-btn red" data-cancel="${t.id}">Cancel</button>`;
     }
     card.innerHTML = `
       <div class="card-row">
         <div>
           <div class="card-title">Trade #${t.id}</div>
-          <div class="card-sub">with ${other} · ${t.status}</div>
+          <div class="card-sub">with ${other}</div>
         </div>
         <div style="display:flex; gap:6px;">${actions}</div>
       </div>`;
@@ -840,70 +993,37 @@ function renderTradeList(elId, trades, isIncoming) {
   });
 
   el.querySelectorAll("[data-accept]").forEach((btn) => btn.addEventListener("click", async () => {
-    try { await apiPost("/trade/accept", { trade_id: Number(btn.dataset.accept) }); showToast("Trade accepted"); loadTrades(); } catch (e) {}
+    btn.disabled = true;
+    try {
+      await apiPost("/trade/accept", { trade_id: Number(btn.dataset.accept) });
+      showToast("Trade completed!");
+      loadTrades();
+      loadPets();
+    } catch (e) { btn.disabled = false; }
   }));
   el.querySelectorAll("[data-decline]").forEach((btn) => btn.addEventListener("click", async () => {
     try { await apiPost("/trade/decline", { trade_id: Number(btn.dataset.decline) }); showToast("Trade declined"); loadTrades(); } catch (e) {}
   }));
-  el.querySelectorAll("[data-open-trade]").forEach((btn) => btn.addEventListener("click", () => openTradeModal(Number(btn.dataset.openTrade))));
+  el.querySelectorAll("[data-cancel]").forEach((btn) => btn.addEventListener("click", async () => {
+    try { await apiPost("/trade/cancel", { trade_id: Number(btn.dataset.cancel) }); showToast("Trade cancelled"); loadTrades(); } catch (e) {}
+  }));
+  el.querySelectorAll("[data-open-trade]").forEach((btn) => btn.addEventListener("click", () => openTradeView(Number(btn.dataset.openTrade))));
 }
 
-async function openTradeModal(tradeId) {
+async function openTradeView(tradeId) {
   const data = await apiGet(`/trade?id=${tradeId}`);
   const t = data.trade;
   const isCreator = t.creator_id === telegramId;
   const myOffer = isCreator ? t.creator_offer : t.receiver_offer;
   const theirOffer = isCreator ? t.receiver_offer : t.creator_offer;
-  const myConfirmed = isCreator ? t.creator_confirmed : t.receiver_confirmed;
-  const theirConfirmed = isCreator ? t.receiver_confirmed : t.creator_confirmed;
-
-  const petOptions = myPetsCache.map((p) => `<option value="${p.pet_id}">${p.emoji} ${p.name} (×${p.quantity})</option>`).join("");
 
   openModal(`
     <h3>Trade #${t.id} · ${t.status}</h3>
-    <div class="section-title" style="margin-top:0;">Your offer</div>
-    ${myOffer.length ? myOffer.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing offered</div>`}
-    <div class="section-title">Their offer</div>
-    ${theirOffer.length ? theirOffer.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing offered</div>`}
-
-    ${t.status === "active" ? `
-      <div class="section-title">Add a pet to your offer</div>
-      <div class="qty-row">
-        <select id="tradePetSelect" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:9px; padding:9px;">${petOptions}</select>
-        <input type="number" id="tradePetQty" value="1" min="1" style="width:70px;">
-        <button class="pill-btn" id="tradeAddBtn">Add</button>
-      </div>
-      <div class="card-sub" style="margin-top:12px;">You: ${myConfirmed ? "Confirmed ✓" : "Not confirmed"} · Them: ${theirConfirmed ? "Confirmed ✓" : "Not confirmed"}</div>
-      <div class="qty-row">
-        <button class="pill-btn teal" id="tradeConfirmBtn" style="flex:1;">Confirm trade</button>
-        <button class="pill-btn red" id="tradeCancelBtn" style="flex:1;">Cancel</button>
-      </div>
-    ` : ""}
+    <div class="section-title" style="margin-top:0;">You give</div>
+    ${myOffer.length ? myOffer.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing</div>`}
+    <div class="section-title">You receive</div>
+    ${theirOffer.length ? theirOffer.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing</div>`}
   `);
-
-  const addBtn = document.getElementById("tradeAddBtn");
-  if (addBtn) addBtn.addEventListener("click", async () => {
-    const petId = Number(document.getElementById("tradePetSelect").value);
-    const qty = Number(document.getElementById("tradePetQty").value) || 1;
-    try {
-      await apiPost("/trade/add", { trade_id: tradeId, pet_id: petId, quantity: qty });
-      showToast("Offer updated");
-      openTradeModal(tradeId);
-    } catch (e) {}
-  });
-  const confirmBtn = document.getElementById("tradeConfirmBtn");
-  if (confirmBtn) confirmBtn.addEventListener("click", async () => {
-    try {
-      const res = await apiPost("/trade/confirm", { trade_id: tradeId });
-      if (res.status === "completed") { showToast("Trade completed!"); closeModal(); loadPets(); }
-      else showToast("Confirmed. Waiting for the other player.");
-      loadTrades();
-    } catch (e) {}
-  });
-  const cancelBtn = document.getElementById("tradeCancelBtn");
-  if (cancelBtn) cancelBtn.addEventListener("click", async () => {
-    try { await apiPost("/trade/cancel", { trade_id: tradeId }); showToast("Trade cancelled"); closeModal(); loadTrades(); } catch (e) {}
-  });
 }
 
 // =========================================================
@@ -943,11 +1063,21 @@ function renderLeaderboard() {
 // =========================================================
 // SUPPORT
 // =========================================================
-document.getElementById("supportBtn").addEventListener("click", () => {
-  // Native Telegram Stars invoices require a server-generated invoice link
-  // (created via the Bot API's createInvoiceLink with currency "XTR").
-  // Wire this button to that endpoint once it exists on the backend.
-  showToast("Telegram Stars support is coming soon");
+document.querySelectorAll("[data-stars]").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const stars = Number(btn.dataset.stars);
+    btn.disabled = true;
+    try {
+      const res = await apiPost("/support/create-invoice", { stars });
+      if (tg && tg.openInvoice) {
+        tg.openInvoice(res.invoice_link, (status) => {
+          if (status === "paid") showToast("Thank you for your support! ⭐");
+        });
+      } else {
+        window.open(res.invoice_link, "_blank");
+      }
+    } catch (e) {} finally { btn.disabled = false; }
+  });
 });
 
 // =========================================================
