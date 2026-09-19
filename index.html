@@ -147,6 +147,8 @@
   .badge.common{ background:rgba(154,164,189,.15); color:var(--common-grey); }
   .badge.rare{ background:rgba(95,168,255,.15); color:var(--rare-blue); }
   .badge.legendary{ background:rgba(185,140,224,.15); color:var(--plum); }
+  .badge.upgraded{ background:rgba(52,216,165,.15); color:var(--teal); }
+  .badge.ultra{ background:rgba(232,179,76,.15); color:var(--gold); }
   .badge.up{ background:rgba(52,216,165,.15); color:var(--teal); }
   .badge.down{ background:rgba(255,97,97,.15); color:var(--red); }
 
@@ -717,6 +719,18 @@ async function loadPortfolio() {
 // =========================================================
 let myPetsCache = [];
 
+// Small helper: colored badge + display-name prefix for crafted tiers.
+function tierBadgeHtml(tier) {
+  if (tier === "upgraded") return `<span class="badge upgraded">Upgraded</span>`;
+  if (tier === "ultra") return `<span class="badge ultra">Ultra Upgraded</span>`;
+  return "";
+}
+function tierPrefix(tier) {
+  if (tier === "upgraded") return "Upgraded ";
+  if (tier === "ultra") return "Ultra ";
+  return "";
+}
+
 async function loadPets() {
   const data = await apiGet(`/pets?telegram_id=${encodeURIComponent(telegramId)}`);
   myPetsCache = data.pets;
@@ -739,11 +753,14 @@ function renderActivePet(pet, availableAt) {
       <div class="card-left">
         <span class="card-emoji">${pet.emoji}</span>
         <div>
-          <div class="card-title">${pet.name}</div>
+          <div class="card-title">${tierPrefix(pet.upgrade_tier)}${pet.name}</div>
           <div class="card-sub">+${pet.bonus_value}% all income</div>
         </div>
       </div>
-      <span class="badge ${pet.rarity.toLowerCase()}">${pet.rarity}</span>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+        <span class="badge ${pet.rarity.toLowerCase()}">${pet.rarity}</span>
+        ${tierBadgeHtml(pet.upgrade_tier)}
+      </div>
     </div>
     ${onCooldown ? `<div class="cooldown-note">Pet change available in ${cooldownText}</div>` : ""}
   `;
@@ -799,8 +816,13 @@ function renderMyPets(pets, activePetId, availableAt) {
   }
   const now = Date.now() / 1000;
   const onCooldown = now < Number(availableAt);
+
   pets.forEach((p) => {
     const isActive = p.pet_id === activePetId;
+    const reserved = isActive ? 1 : 0;
+    const tradeableQty = p.quantity - reserved;
+    const canCraft = p.next_pet_id && tradeableQty >= 4;
+
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
@@ -808,14 +830,19 @@ function renderMyPets(pets, activePetId, availableAt) {
         <div class="card-left">
           <span class="card-emoji">${p.emoji}</span>
           <div>
-            <div class="card-title">${p.name} ×${fmt(p.quantity)} ${isActive ? "· active" : ""}</div>
+            <div class="card-title">${tierPrefix(p.upgrade_tier)}${p.name} ×${fmt(p.quantity)} ${isActive ? "· active" : ""}</div>
             <div class="card-sub">+${p.bonus_value}% all income · sells for ${fmt(p.sell_value)} 🪙</div>
           </div>
         </div>
-        <div style="display:flex; gap:6px;">
-          <button class="pill-btn" data-equip="${p.pet_id}" ${isActive || onCooldown ? "disabled" : ""}>Equip</button>
-          <button class="pill-btn red" data-sell="${p.pet_id}" ${isActive ? "disabled" : ""}>Sell</button>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+          <span class="badge ${p.rarity.toLowerCase()}">${p.rarity}</span>
+          ${tierBadgeHtml(p.upgrade_tier)}
         </div>
+      </div>
+      <div class="qty-row">
+        <button class="pill-btn" data-equip="${p.pet_id}" ${isActive || onCooldown ? "disabled" : ""}>Equip</button>
+        <button class="pill-btn red" data-sell="${p.pet_id}" ${tradeableQty < 1 ? "disabled" : ""}>Sell</button>
+        ${p.next_pet_id ? `<button class="pill-btn gold" data-craft="${p.pet_id}" data-next-bonus="${p.next_bonus_value}" data-next-tier="${p.next_upgrade_tier}" ${canCraft ? "" : "disabled"}>Upgrade (4→1)</button>` : ""}
       </div>`;
     el.appendChild(card);
   });
@@ -843,6 +870,40 @@ function renderMyPets(pets, activePetId, availableAt) {
         loadPets();
       } catch (e) {} finally { btn.disabled = false; }
     });
+  });
+  el.querySelectorAll("[data-craft]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const petId = Number(btn.dataset.craft);
+      const source = pets.find((p) => p.pet_id === petId);
+      openCraftConfirm(source, {
+        bonus_value: Number(btn.dataset.nextBonus),
+        upgrade_tier: btn.dataset.nextTier,
+      });
+    });
+  });
+}
+
+function openCraftConfirm(source, next) {
+  openModal(`
+    <h3>Upgrade ${source.emoji} ${tierPrefix(source.upgrade_tier)}${source.name}</h3>
+    <div class="card-sub" style="margin-bottom:14px;">
+      This will use up <b>4×</b> ${tierPrefix(source.upgrade_tier)}${source.name} and give you <b>1×</b>
+      ${source.emoji} ${tierPrefix(next.upgrade_tier)}${source.name} ${tierBadgeHtml(next.upgrade_tier)}
+      with <b>+${next.bonus_value}%</b> all income (up from +${source.bonus_value}%).
+    </div>
+    <div class="qty-row">
+      <button class="pill-btn gold" id="craftConfirmBtn" style="flex:1;">Confirm upgrade</button>
+      <button class="pill-btn" id="craftCancelBtn" style="flex:1;">Cancel</button>
+    </div>
+  `);
+  document.getElementById("craftCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("craftConfirmBtn").addEventListener("click", async () => {
+    try {
+      const res = await apiPost("/craft-pet", { pet_id: source.pet_id });
+      closeModal();
+      showToast(`Crafted! You now have ${res.result_pet.emoji} ${tierPrefix(res.result_pet.upgrade_tier)}${res.result_pet.name}`);
+      loadPets();
+    } catch (e) {}
   });
 }
 
@@ -898,8 +959,16 @@ function openTradeBuilder(target) {
 
 function renderTradeBuilder() {
   const target = tradeBuilderTarget;
-  const myPets = myPetsCache.filter((p) => p.pet_id !== (player.active_pet_id || null));
-  const theirPets = (target.pets || []).filter((p) => p.pet_id !== target.active_pet_id);
+
+  // Reserve exactly 1 unit of the active pet (if any) instead of excluding
+  // the whole pet type — any extra copies beyond that are tradeable.
+  const withEffectiveMax = (list, activeId) =>
+    list
+      .map((p) => ({ ...p, effectiveMax: p.quantity - (p.pet_id === activeId ? 1 : 0) }))
+      .filter((p) => p.effectiveMax > 0);
+
+  const myPets = withEffectiveMax(myPetsCache, player.active_pet_id);
+  const theirPets = withEffectiveMax(target.pets || [], target.active_pet_id);
 
   const giveRows = myPets.length
     ? myPets.map((p) => petRowHtml(p, "give", tradeBuilderGive[p.pet_id] || 0)).join("")
@@ -934,12 +1003,15 @@ function renderTradeBuilder() {
 }
 
 function petRowHtml(pet, side, qty) {
-  return `<div class="pet-row" data-pet-row="${pet.pet_id}" data-side="${side}" data-max="${pet.quantity}">
-    <div class="pet-row-info">${pet.emoji} ${pet.name} <span class="card-sub">· ${pet.quantity} owned</span></div>
+  return `<div class="pet-row" data-pet-row="${pet.pet_id}" data-side="${side}" data-max="${pet.effectiveMax}">
+    <div class="pet-row-info">
+      ${pet.emoji} ${tierPrefix(pet.upgrade_tier)}${pet.name} ${tierBadgeHtml(pet.upgrade_tier)}
+      <div class="card-sub">+${pet.bonus_value}% income · ${pet.effectiveMax} available</div>
+    </div>
     <div class="qty-stepper">
       <button class="qty-btn" data-step="-1" ${qty <= 0 ? "disabled" : ""}>−</button>
       <span class="qty-display">${qty}</span>
-      <button class="qty-btn" data-step="1" ${qty >= pet.quantity ? "disabled" : ""}>+</button>
+      <button class="qty-btn" data-step="1" ${qty >= pet.effectiveMax ? "disabled" : ""}>+</button>
     </div>
   </div>`;
 }
@@ -995,6 +1067,16 @@ async function loadTrades() {
   renderOutgoingTrades(outgoing.trades);
 }
 
+// Renders one trade-item line with its income bonus and tier badge, so
+// nobody has to guess what a pet actually does before accepting a trade.
+function tradeItemLine(item) {
+  return `<div class="card-sub" style="margin-bottom:2px;">
+    ${item.emoji} ${tierPrefix(item.upgrade_tier)}${item.name} ×${item.quantity}
+    ${tierBadgeHtml(item.upgrade_tier)}
+    <span style="color:var(--teal);">+${item.bonus_value}%</span>
+  </div>`;
+}
+
 async function renderIncomingTrades(trades) {
   const el = document.getElementById("tradeIncoming");
   el.innerHTML = "";
@@ -1018,9 +1100,9 @@ async function renderIncomingTrades(trades) {
     card.innerHTML = `
       <div class="card-title" style="margin-bottom:8px;">Trade #${t.id} · from ${t.creator_id}</div>
       <div class="section-title" style="margin:0 0 4px;">You'll receive</div>
-      ${youReceive.length ? youReceive.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing</div>`}
+      ${youReceive.length ? youReceive.map(tradeItemLine).join("") : `<div class="card-sub">Nothing</div>`}
       <div class="section-title" style="margin:10px 0 4px;">You'll give</div>
-      ${youGive.length ? youGive.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing</div>`}
+      ${youGive.length ? youGive.map(tradeItemLine).join("") : `<div class="card-sub">Nothing</div>`}
       <div class="qty-row">
         <button class="pill-btn teal" data-accept="${t.id}" style="flex:1;">Accept</button>
         <button class="pill-btn red" data-decline="${t.id}" style="flex:1;">Decline</button>
@@ -1082,9 +1164,9 @@ async function openTradeView(tradeId) {
   openModal(`
     <h3>Trade #${t.id} · ${t.status}</h3>
     <div class="section-title" style="margin-top:0;">You give</div>
-    ${myOffer.length ? myOffer.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing</div>`}
+    ${myOffer.length ? myOffer.map(tradeItemLine).join("") : `<div class="card-sub">Nothing</div>`}
     <div class="section-title">You receive</div>
-    ${theirOffer.length ? theirOffer.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing</div>`}
+    ${theirOffer.length ? theirOffer.map(tradeItemLine).join("") : `<div class="card-sub">Nothing</div>`}
   `);
 }
 
