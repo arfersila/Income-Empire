@@ -242,8 +242,33 @@
 
   .offer-summary{ font-size:12.5px; color:var(--text-muted); margin-top:6px; min-height:16px; }
 
-  .stars-preset-row{ display:flex; gap:8px; margin-top:14px; }
-  .stars-preset-row button{ flex:1; }
+  .stars-input-row{ margin-top:16px; }
+  .stars-input-row input[type=range]{
+    width:100%; accent-color:var(--gold); height:4px;
+  }
+  .stars-number-row{
+    display:flex; align-items:center; gap:8px; justify-content:center; margin-top:10px;
+  }
+  .stars-number-row input[type=number]{
+    background:var(--bg); border:1px solid var(--border); color:var(--gold);
+    border-radius:var(--radius-sm); padding:10px 14px; font-size:18px; font-weight:700;
+    width:140px; text-align:center; font-family:'Space Grotesk',sans-serif;
+  }
+
+  .pet-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:9px 12px; margin-bottom:6px;
+  }
+  .pet-row-info{ font-size:13px; }
+  .qty-stepper{ display:flex; align-items:center; gap:10px; flex:0 0 auto; }
+  .qty-btn{
+    width:26px; height:26px; border-radius:50%; background:var(--surface);
+    border:1px solid var(--border); color:var(--text); font-size:15px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qty-btn:disabled{ opacity:.3; }
+  .qty-display{ min-width:16px; text-align:center; font-weight:600; font-size:13px; }
 </style>
 </head>
 <body>
@@ -335,11 +360,14 @@
     <div class="card-sub" style="margin-bottom:18px;">
       Voluntary support via Telegram Stars. It does not change your balance, income, pets, or leaderboard position — it only helps the project keep running.
     </div>
-    <div class="stars-preset-row">
-      <button class="pill-btn gold" data-stars="50">⭐ 50</button>
-      <button class="pill-btn gold" data-stars="100">⭐ 100</button>
-      <button class="pill-btn gold" data-stars="500">⭐ 500</button>
+    <div class="stars-input-row">
+      <input type="range" id="starsSlider" min="1" max="2500" value="50" step="1">
     </div>
+    <div class="stars-number-row">
+      <span style="font-size:15px;">⭐</span>
+      <input type="number" id="starsNumber" min="1" max="1000000" value="50">
+    </div>
+    <button class="pill-btn gold" id="supportBtn" style="width:100%; margin-top:16px;">Support with <span id="starsLabel">50</span> ⭐</button>
   </div>
 </div>
 
@@ -873,22 +901,22 @@ function renderTradeBuilder() {
   const myPets = myPetsCache.filter((p) => p.pet_id !== (player.active_pet_id || null));
   const theirPets = (target.pets || []).filter((p) => p.pet_id !== target.active_pet_id);
 
-  const giveChips = myPets.length
-    ? myPets.map((p) => chipHtml(p, "give", tradeBuilderGive[p.pet_id] || 0)).join("")
+  const giveRows = myPets.length
+    ? myPets.map((p) => petRowHtml(p, "give", tradeBuilderGive[p.pet_id] || 0)).join("")
     : `<div class="card-sub">You have no tradeable pets.</div>`;
-  const receiveChips = theirPets.length
-    ? theirPets.map((p) => chipHtml(p, "receive", tradeBuilderReceive[p.pet_id] || 0)).join("")
+  const receiveRows = theirPets.length
+    ? theirPets.map((p) => petRowHtml(p, "receive", tradeBuilderReceive[p.pet_id] || 0)).join("")
     : `<div class="card-sub">They have no tradeable pets.</div>`;
 
   openModal(`
     <h3>Trade with @${target.username || target.telegram_id}</h3>
 
     <div class="section-title" style="margin-top:0;">You give</div>
-    <div class="pet-chip-grid" id="giveChips">${giveChips}</div>
+    <div id="giveRows">${giveRows}</div>
     <div class="offer-summary" id="giveSummary"></div>
 
     <div class="section-title">You receive</div>
-    <div class="pet-chip-grid" id="receiveChips">${receiveChips}</div>
+    <div id="receiveRows">${receiveRows}</div>
     <div class="offer-summary" id="receiveSummary"></div>
 
     <div class="qty-row">
@@ -897,43 +925,50 @@ function renderTradeBuilder() {
     </div>
   `);
 
-  document.querySelectorAll("#giveChips [data-chip]").forEach((chip) => {
-    chip.addEventListener("click", () => toggleChip(chip, "give"));
-  });
-  document.querySelectorAll("#receiveChips [data-chip]").forEach((chip) => {
-    chip.addEventListener("click", () => toggleChip(chip, "receive"));
-  });
+  attachQtyHandlers("giveRows", tradeBuilderGive);
+  attachQtyHandlers("receiveRows", tradeBuilderReceive);
   updateOfferSummaries();
 
   document.getElementById("sendTradeBtn").addEventListener("click", submitTrade);
   document.getElementById("cancelBuilderBtn").addEventListener("click", closeModal);
 }
 
-function chipHtml(pet, side, qty) {
-  const selected = qty > 0 ? "selected" : "";
-  return `<div class="pet-chip ${selected}" data-chip="${pet.pet_id}" data-side="${side}" data-max="${pet.quantity}">
-    ${pet.emoji} ${pet.name} ${pet.quantity > 1 ? `×${pet.quantity}` : ""}
+function petRowHtml(pet, side, qty) {
+  return `<div class="pet-row" data-pet-row="${pet.pet_id}" data-side="${side}" data-max="${pet.quantity}">
+    <div class="pet-row-info">${pet.emoji} ${pet.name} <span class="card-sub">· ${pet.quantity} owned</span></div>
+    <div class="qty-stepper">
+      <button class="qty-btn" data-step="-1" ${qty <= 0 ? "disabled" : ""}>−</button>
+      <span class="qty-display">${qty}</span>
+      <button class="qty-btn" data-step="1" ${qty >= pet.quantity ? "disabled" : ""}>+</button>
+    </div>
   </div>`;
 }
 
-function toggleChip(chip, side) {
-  const petId = Number(chip.dataset.chip);
-  const store = side === "give" ? tradeBuilderGive : tradeBuilderReceive;
-  if (store[petId]) {
-    delete store[petId]; // click again to deselect — one unit per click keeps this simple and unambiguous
-    chip.classList.remove("selected");
-  } else {
-    store[petId] = 1;
-    chip.classList.add("selected");
-  }
-  updateOfferSummaries();
+function attachQtyHandlers(containerId, store) {
+  document.querySelectorAll(`#${containerId} .qty-btn`).forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const row = btn.closest("[data-pet-row]");
+      const petId = Number(row.dataset.petRow);
+      const max = Number(row.dataset.max);
+      const step = Number(btn.dataset.step);
+      const current = store[petId] || 0;
+      const next = Math.max(0, Math.min(max, current + step));
+
+      if (next > 0) store[petId] = next; else delete store[petId];
+
+      row.querySelector(".qty-display").textContent = next;
+      row.querySelector('[data-step="-1"]').disabled = next <= 0;
+      row.querySelector('[data-step="1"]').disabled = next >= max;
+      updateOfferSummaries();
+    });
+  });
 }
 
 function updateOfferSummaries() {
-  const giveCount = Object.keys(tradeBuilderGive).length;
-  const receiveCount = Object.keys(tradeBuilderReceive).length;
-  document.getElementById("giveSummary").textContent = giveCount ? `${giveCount} pet type(s) selected` : "Nothing selected";
-  document.getElementById("receiveSummary").textContent = receiveCount ? `${receiveCount} pet type(s) selected` : "Nothing selected";
+  const giveTotal = Object.values(tradeBuilderGive).reduce((s, q) => s + q, 0);
+  const receiveTotal = Object.values(tradeBuilderReceive).reduce((s, q) => s + q, 0);
+  document.getElementById("giveSummary").textContent = giveTotal ? `${giveTotal} pet(s) selected` : "Nothing selected";
+  document.getElementById("receiveSummary").textContent = receiveTotal ? `${receiveTotal} pet(s) selected` : "Nothing selected";
 }
 
 async function submitTrade() {
@@ -956,38 +991,39 @@ async function loadTrades() {
     apiGet(`/trade/incoming?telegram_id=${encodeURIComponent(telegramId)}`),
     apiGet(`/trade/outgoing?telegram_id=${encodeURIComponent(telegramId)}`),
   ]);
-  renderTradeList("tradeIncoming", incoming.trades, true);
-  renderTradeList("tradeOutgoing", outgoing.trades, false);
+  await renderIncomingTrades(incoming.trades);
+  renderOutgoingTrades(outgoing.trades);
 }
 
-function renderTradeList(elId, trades, isIncoming) {
-  const el = document.getElementById(elId);
+async function renderIncomingTrades(trades) {
+  const el = document.getElementById("tradeIncoming");
   el.innerHTML = "";
   if (trades.length === 0) {
     el.innerHTML = `<div class="empty-state">Nothing here yet.</div>`;
     return;
   }
-  trades.forEach((t) => {
-    const other = isIncoming ? t.creator_id : t.receiver_id;
+
+  // Fetch full item lists up front so the player can see exactly what's in
+  // the trade before deciding — never a blind Accept/Decline.
+  const details = await Promise.all(trades.map((t) => apiGet(`/trade?id=${t.id}`).catch(() => null)));
+
+  details.forEach((d) => {
+    if (!d) return;
+    const t = d.trade;
+    const youGive = t.receiver_offer; // items owned by you (the receiver) that the sender wants
+    const youReceive = t.creator_offer; // items the sender is giving you
+
     const card = document.createElement("div");
     card.className = "card";
-    let actions = `<button class="pill-btn gold" data-open-trade="${t.id}">Open</button>`;
-    if (isIncoming) {
-      actions = `
-        <button class="pill-btn teal" data-accept="${t.id}">Accept</button>
-        <button class="pill-btn red" data-decline="${t.id}">Decline</button>`;
-    } else {
-      actions = `
-        <button class="pill-btn gold" data-open-trade="${t.id}">View</button>
-        <button class="pill-btn red" data-cancel="${t.id}">Cancel</button>`;
-    }
     card.innerHTML = `
-      <div class="card-row">
-        <div>
-          <div class="card-title">Trade #${t.id}</div>
-          <div class="card-sub">with ${other}</div>
-        </div>
-        <div style="display:flex; gap:6px;">${actions}</div>
+      <div class="card-title" style="margin-bottom:8px;">Trade #${t.id} · from ${t.creator_id}</div>
+      <div class="section-title" style="margin:0 0 4px;">You'll receive</div>
+      ${youReceive.length ? youReceive.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing</div>`}
+      <div class="section-title" style="margin:10px 0 4px;">You'll give</div>
+      ${youGive.length ? youGive.map((i) => `<div class="card-sub">${i.emoji} ${i.name} ×${i.quantity}</div>`).join("") : `<div class="card-sub">Nothing</div>`}
+      <div class="qty-row">
+        <button class="pill-btn teal" data-accept="${t.id}" style="flex:1;">Accept</button>
+        <button class="pill-btn red" data-decline="${t.id}" style="flex:1;">Decline</button>
       </div>`;
     el.appendChild(card);
   });
@@ -1004,6 +1040,32 @@ function renderTradeList(elId, trades, isIncoming) {
   el.querySelectorAll("[data-decline]").forEach((btn) => btn.addEventListener("click", async () => {
     try { await apiPost("/trade/decline", { trade_id: Number(btn.dataset.decline) }); showToast("Trade declined"); loadTrades(); } catch (e) {}
   }));
+}
+
+function renderOutgoingTrades(trades) {
+  const el = document.getElementById("tradeOutgoing");
+  el.innerHTML = "";
+  if (trades.length === 0) {
+    el.innerHTML = `<div class="empty-state">Nothing here yet.</div>`;
+    return;
+  }
+  trades.forEach((t) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-row">
+        <div>
+          <div class="card-title">Trade #${t.id}</div>
+          <div class="card-sub">with ${t.receiver_id} · waiting for response</div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="pill-btn gold" data-open-trade="${t.id}">View</button>
+          <button class="pill-btn red" data-cancel="${t.id}">Cancel</button>
+        </div>
+      </div>`;
+    el.appendChild(card);
+  });
+
   el.querySelectorAll("[data-cancel]").forEach((btn) => btn.addEventListener("click", async () => {
     try { await apiPost("/trade/cancel", { trade_id: Number(btn.dataset.cancel) }); showToast("Trade cancelled"); loadTrades(); } catch (e) {}
   }));
@@ -1063,21 +1125,35 @@ function renderLeaderboard() {
 // =========================================================
 // SUPPORT
 // =========================================================
-document.querySelectorAll("[data-stars]").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    const stars = Number(btn.dataset.stars);
-    btn.disabled = true;
-    try {
-      const res = await apiPost("/support/create-invoice", { stars });
-      if (tg && tg.openInvoice) {
-        tg.openInvoice(res.invoice_link, (status) => {
-          if (status === "paid") showToast("Thank you for your support! ⭐");
-        });
-      } else {
-        window.open(res.invoice_link, "_blank");
-      }
-    } catch (e) {} finally { btn.disabled = false; }
-  });
+const starsSlider = document.getElementById("starsSlider");
+const starsNumber = document.getElementById("starsNumber");
+const starsLabel = document.getElementById("starsLabel");
+
+starsSlider.addEventListener("input", () => {
+  starsNumber.value = starsSlider.value;
+  starsLabel.textContent = starsSlider.value;
+});
+starsNumber.addEventListener("input", () => {
+  const val = Math.max(1, Math.floor(Number(starsNumber.value) || 1));
+  starsLabel.textContent = val;
+  if (val <= Number(starsSlider.max)) starsSlider.value = val;
+});
+
+document.getElementById("supportBtn").addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  const stars = Math.max(1, Math.floor(Number(starsNumber.value) || 0));
+  if (!stars) return showToast("Enter a valid amount", true);
+  btn.disabled = true;
+  try {
+    const res = await apiPost("/support/create-invoice", { stars });
+    if (tg && tg.openInvoice) {
+      tg.openInvoice(res.invoice_link, (status) => {
+        if (status === "paid") showToast("Thank you for your support! ⭐");
+      });
+    } else {
+      window.open(res.invoice_link, "_blank");
+    }
+  } catch (e) {} finally { btn.disabled = false; }
 });
 
 // =========================================================
